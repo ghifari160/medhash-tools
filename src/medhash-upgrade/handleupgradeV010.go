@@ -112,7 +112,7 @@ func handleUpgradeV010(root string) error {
 		Media:   media,
 	}
 
-	medhashJSON, err := json.Marshal(medhash)
+	medhashJSON, err := json.MarshalIndent(medhash, "", "    ")
 	if err != nil {
 		return err
 	}
