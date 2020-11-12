@@ -24,6 +24,13 @@ target directory by setting the `BUILD_DIR` environment variable.
 
 ### Cross Compilation
 
+You can compile the binaries for Linux, macOS, or Windows by replacing the `<target platform>` with
+`linux` for Linux, `macos` or `darwin` for macOS, and `windows` for Windows.
+
+``` shell
+make <target platform>
+```
+
 You can set the `GOOS` and `GOARCH` environment variables to cross compile to other platforms.
 
 ## Installing
