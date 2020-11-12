@@ -69,13 +69,15 @@ func main() {
 	fmt.Println(medhash.Version)
 
 	if medhash.Version == "0.2.0" {
-		err := handleUpgradeV020(root)
+		err = handleUpgradeV020(root)
+	} else if medhash.Version == "0.3.0" {
+		err = handleUpgradeV030(root)
+	}
 
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "Error: Unable to upgrade legacy medhash file")
-			fmt.Fprintln(os.Stderr, err.Error())
-			os.Exit(-1)
-		}
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error: Unable to upgrade medhash file")
+		fmt.Fprintln(os.Stderr, err.Error())
+		os.Exit(-1)
 	}
 
 	fmt.Println("Done!")
