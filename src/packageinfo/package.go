@@ -4,7 +4,7 @@ package packageinfo
 var Name string = "medhash-tools"
 
 // Version translated from package.version
-var Version string = "0.2.0"
+var Version string = "0.3.0"
 
 // Description translated from package.description
 var Description string = "medhash tools"
