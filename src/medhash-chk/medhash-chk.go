@@ -20,6 +20,7 @@ import (
 const NAME string = "medhash-chk"
 
 const DEFAULT_FLAGFILE string = "__FILE__"
+const DEFAULT_FLAGMANIFEST string = "__TARGET__"
 
 func main() {
 	targetDir := "."
@@ -32,6 +33,9 @@ func main() {
 
 	var flagFile string
 	flag.StringVar(&flagFile, "file", DEFAULT_FLAGFILE, "Verify a specific file in the manifest")
+
+	var flagManifest string
+	flag.StringVar(&flagManifest, "manifest", DEFAULT_FLAGMANIFEST, "Path to Manifest")
 
 	flag.Parse()
 
@@ -49,6 +53,14 @@ func main() {
 
 	homeDir, _ := os.UserHomeDir()
 
+	if flagManifest == DEFAULT_FLAGMANIFEST {
+		flagManifest = path.Join(targetDir, medhash.MEDHASH_MANIFEST_NAME)
+	}
+
+	if strings.HasPrefix(flagManifest, "~") {
+		flagManifest = path.Join(homeDir, flagManifest[1:])
+	}
+
 	if strings.HasPrefix(targetDir, "~") {
 		targetDir = path.Join(homeDir, targetDir[1:])
 	}
@@ -56,12 +68,13 @@ func main() {
 	if flagVerbose {
 		fmt.Printf("Working Dir: %s\n", cwd)
 		fmt.Printf("Target Dir: %s\n", targetDir)
+		fmt.Printf("Manifest: %s\n", flagManifest)
 	}
 
-	medhashFile, err := ioutil.ReadFile(path.Join(targetDir, medhash.MEDHASH_MANIFEST_NAME))
+	medhashFile, err := ioutil.ReadFile(flagManifest)
 	if err != nil {
 		if os.IsNotExist(err) {
-			fmt.Printf("%s does not exists in the target directory\n", medhash.MEDHASH_MANIFEST_NAME)
+			fmt.Println("Manifest does not exists in the target directory")
 			os.Exit(1)
 		} else {
 			common.HandleError(err, 1)
