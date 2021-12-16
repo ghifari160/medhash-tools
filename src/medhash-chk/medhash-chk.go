@@ -88,9 +88,10 @@ func main() {
 
 		if !valid {
 			invalidCount++
-			fmt.Println("Error")
+				common.ColorPrintln("\x1B[31m", "ERROR")
 		} else {
-			fmt.Println("OK")
+				common.ColorPrintln("\x1B[32m", "OK")
+			}
 		}
 	}
 
