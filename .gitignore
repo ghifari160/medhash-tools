@@ -1,5 +1,23 @@
+# MedHash Tools
+# Copyright (c) 2021 GHIFARI160
+
+# OS-Specific ignores
+# Windows
+Thumbs.db
+
+# macOS
 .DS_Store
 
+# Linux
+lost+found
+
+# Stack-specific ignores
+dist/
+out/
+
+# IDE-specific ignores
+.vscode
+
+# Project-specific ignores
 medhash.json
 sums.txt
-out/

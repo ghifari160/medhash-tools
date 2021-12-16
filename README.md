@@ -1,99 +1,43 @@
 # MedHash Tools
 
-A collection of tools for dealing with media hash (_medhash_) files.
+Simple tools for verifying media file integrity.
 
 ## Building
 
-Building requires a working Go 1.15+ installation and Make.
+Building requires a working Go 1.15+ installation.
 
 Clone and enter the repository
 
 ``` shell
 git clone https://github.com/ghifari160/medhash-tools
-cd medhash-tools
+cd medhash-tools/src
 ```
 
-Build the binaries
+Build the binaries (Linux and macOS)
 
 ``` shell
-make
+./build.sh
 ```
 
-The binaries are stored in `out/build` relative to the current directory. You can override the
-target directory by setting the `BUILD_DIR` environment variable.
-
-### Cross Compilation
-
-You can compile the binaries for Linux, macOS, or Windows by replacing the `<target platform>` with
-`linux` for Linux, `macos` or `darwin` for macOS, and `windows` for Windows.
+Build the binaries (Windows)
 
 ``` shell
-make <target platform>
+build.bat
 ```
 
-You can set the `GOOS` and `GOARCH` environment variables to cross compile to other platforms.
+The binaries are stored in `dist/{VERSION}`.
 
-## Installing
-
-Installation requires a working Go 1.15+ installation.
-
-You can install individual tools with
+You can specificy a build target if necessary
 
 ``` shell
-go get -u github.com/ghifari160/src/<tool name>
+./build.sh linux
 ```
 
-Alternatively, you can install _all_ tools with
+**Note:** building the macOS target requires a macOS host machine.
+The macOS target builds a universal binary.
+This is done by building an Intel binary and an M1 binary, then merging the two with `lipo`.
 
-``` shell
-go get -u github.com/ghifari160/src/...
-```
-
-## Packaging
-
-Setup the directory structure
-
-``` shell
-mkdir -p out/packaging out/release
-```
-
-Prepare the files for packaging
-
-``` shell
-cd out/packaging && \
-cp ../build/* . && \
-cp ../../LICENSE . && \
-cp ../../README.md . && \
-cd ../../
-```
-
-Run ReMan's packaging tool (or, alternatively, [package without ReMan](#packaging-without-reman))
-
-``` shell
-cd out/packaging && \
-package ../release medhash-tools-macos 0.2.0 && \
-cd ../../
-```
-
-**Note:** Replace `macos` with the target platform `linux` for Linux, `macos` for macOS, and `win`
-for Windows) and `0.2.0` with medhash-tools' version.
-
-The release packages are stored in `out/release` relative to the current directory.
-
-### Packaging without ReMan
-
-Create the release packages
-
-``` shell
-cd out/packaging && \
-zip -r -X ../release/medhash-tools-macos-v0.2.0.zip . -x "*.git*" && \
-tar --exclude="*.git*" -zcvf ../release/medhash-tools-v0.2.0.tar.gz . && \
-tar --exclude="*.git*" -jcvf ../release/medhash-tools-v0.2.0.tar.bz2 . && \
-cd ../../
-```
-
-**Note:** Replace `macos` with the target platform `linux` for Linux, `macos` for macOS, and `win`
-for Windows) and `0.2.0` with medhash-tools' version.
+To clean the build environment, run `clean.sh` in Linux and macOS, and `clean.bat` in Windows.
 
 ## Usage
 
@@ -115,7 +59,6 @@ Upgrading medhash from previous versions
 medhash-upgrade [target dir]
 ```
 
-**Note:** specifying a target directory will run the appropriate tool in scoped mode. In scoped
-mode, both `medhash-gen` and `medhash-chk` will generate and verify hashes for media in the target
-directory. `medhash-upgrade` will _enter_ the directory and attempt to upgrade medhash file to the
-current format.
+**Note:** specifying a target directory will run the appropriate tool in scoped mode.
+In scoped mode, both `medhash-gen` and `medhash-chk` will generate and verify hashes for media in the target directory.
+`medhash-upgrade` will _enter_ the directory and attempt to upgrade medhash file to the current format.

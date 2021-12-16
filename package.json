@@ -1,7 +1,7 @@
 {
     "name": "medhash-tools",
     "version": "0.3.0",
-    "description": "medhash tools",
+    "description": "Simple tools for verifying media file integrity.",
     "author": "GHIFARI160",
-    "license": "UNLICENSED"
+    "license": "MIT"
 }
