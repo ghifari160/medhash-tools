@@ -1,127 +1,174 @@
+// MedHash Tools
+// Copyright (c) 2021 GHIFARI160
+// MIT License
+
 package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
+	"strings"
 
-	"github.com/ghifari160/medhash-tools/src/data"
-	"github.com/ghifari160/medhash-tools/src/packageinfo"
+	"github.com/ghifari160/medhash-tools/src/common"
+	"github.com/ghifari160/medhash-tools/src/medhash"
 )
 
-func main() {
-	root := "."
+const NAME string = "medhash-gen"
 
-	if len(os.Args) > 1 {
-		root = os.Args[1]
+const DEFAULT_FLAGMANIFESTPATH string = "__ROOT__"
+
+func main() {
+	targetDir := "."
+
+	var flagVersion bool
+	flag.BoolVar(&flagVersion, "version", false, "Print version")
+
+	var flagVerbose bool
+	flag.BoolVar(&flagVerbose, "v", false, "Verbose mode")
+
+	var flagManifestPath string
+	flag.StringVar(&flagManifestPath, "manifest", DEFAULT_FLAGMANIFESTPATH, "Manifest output path")
+
+	flag.Parse()
+
+	if len(flag.Args()) > 0 {
+		targetDir = path.Clean(flag.Args()[0])
 	}
 
-	fmt.Print(packageinfo.Name)
-	fmt.Print(" v")
-	fmt.Println(packageinfo.Version)
+	common.PrintHeader(NAME)
+
+	if flagVersion {
+		os.Exit(0)
+	}
+
+	if flagManifestPath == DEFAULT_FLAGMANIFESTPATH {
+		flagManifestPath = path.Join(targetDir, medhash.MEDHASH_MANIFEST_NAME)
+	} else {
+		flagManifestPath = path.Join(flagManifestPath, medhash.MEDHASH_MANIFEST_NAME)
+	}
+
+	homeDir, _ := os.UserHomeDir()
+
+	if strings.HasPrefix(targetDir, "~") {
+		targetDir = path.Join(homeDir, targetDir[1:])
+	}
+
+	if strings.HasPrefix(flagManifestPath, "~") {
+		flagManifestPath = path.Join(homeDir, flagManifestPath[1:])
+	}
 
 	cwd, _ := os.Getwd()
 
-	fmt.Print("Working Dir: ")
-	fmt.Println(cwd)
-
-	fmt.Print("Target Dir: ")
-	fmt.Println(root)
+	if flagVerbose {
+		fmt.Printf("Working Dir: %s\n", cwd)
+		fmt.Printf("Target Dir: %s\n", targetDir)
+		fmt.Printf("Manifest Path: %s\n", flagManifestPath)
+	}
 
 	fmt.Println("Generating hash files")
 
 	var files []string
 	var infos []os.FileInfo
 
-	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(targetDir, func(path string, info os.FileInfo, err error) error {
 		files = append(files, path)
 		infos = append(infos, info)
 		return nil
 	})
+	common.HandleError(err, 1)
 
-	if err != nil {
-		panic(err)
+	var media []medhash.Media
+	mediaMap := make(map[string]*medhash.Hash)
+
+	var manifestIgnorePath string
+	if targetDir != "." {
+		manifestIgnorePath = path.Join(targetDir, medhash.MEDHASH_MANIFEST_NAME)
+	} else {
+		manifestIgnorePath = medhash.MEDHASH_MANIFEST_NAME
 	}
 
-	var media []data.Media
+	errMap := make(map[string]error)
 
 	for i := 0; i < len(files); i++ {
-		if root != "." && files[i] != cwd+"/medhash.json" && infos[i].Mode().IsRegular() {
-			fmt.Print("  ")
-			fmt.Println(files[i])
+		if infos[i].Mode().IsRegular() && files[i] != manifestIgnorePath {
+			fmt.Printf("  %s\n", files[i])
 
-			hash, err := data.GenHash(files[i])
+			hash, err := medhash.GenHash(files[i])
 			if err == nil {
-				media = append(media,
-					data.Media{
-						Path: files[i],
-						Hash: hash,
-					})
-			}
-		} else if root == "." && files[i] != "medhash.json" && files[i] != cwd+"/medhash.json" && infos[i].Mode().IsRegular() {
-			fmt.Print("  ")
-			fmt.Println(files[i])
-
-			hash, err := data.GenHash(files[i])
-			if err == nil {
-				media = append(media,
-					data.Media{
-						Path: files[i],
-						Hash: hash,
-					})
+				mediaMap[files[i]] = hash
+			} else {
+				errMap[files[i]] = err
 			}
 		}
 	}
 
 	fmt.Println("Sanity checking files")
 
-	errCount := 0
-	for i := 0; i < len(media); i++ {
-		berr := false
+	sanitizedMediaMap := make(map[string]*medhash.Hash)
+	invalidCount := 0
 
-		fmt.Print("  ")
-		fmt.Print(media[i].Path)
-		fmt.Print(": ")
+	for k, v := range mediaMap {
+		fmt.Printf("  %s: ", k)
 
-		berr = !data.ChkHash(media[i].Path, media[i].Hash)
+		valid, err := medhash.ChkHash(k, v)
+		if err != nil {
+			errMap[k] = err
+		}
 
-		if berr {
-			errCount++
+		if !valid {
+			invalidCount++
 			fmt.Println("Error")
 		} else {
 			fmt.Println("OK")
+
+			relPath, err := filepath.Rel(targetDir, k)
+			if err != nil {
+				errMap[k] = err
+			} else {
+				sanitizedMediaMap[relPath] = v
+			}
 		}
 	}
 
-	if errCount > 0 {
+	media = make([]medhash.Media, len(sanitizedMediaMap))
+	mI := 0
+	for k, v := range sanitizedMediaMap {
+		media[mI] = medhash.Media{
+			Path: k,
+			Hash: v,
+		}
+
+		mI++
+	}
+
+	if len(errMap) > 0 {
+		for p, e := range errMap {
+			fmt.Fprintf(os.Stderr, "  %s: %v\n", p, e)
+		}
+	}
+
+	if invalidCount > 0 {
 		fmt.Fprintln(os.Stderr, "Media integrity error detected!")
 	}
 
-	medhash := data.Medhash{
-		Version: packageinfo.Version,
-		Media:   media,
-	}
+	medHash := medhash.New()
+	medHash.Media = media
 
-	medhashJSON, err := json.MarshalIndent(medhash, "", "    ")
+	medhashJSON, err := json.MarshalIndent(medHash, "", "    ")
+	common.HandleError(err, 1)
 
-	if err != nil {
-		panic(err)
-	}
-
-	medhashFile, err := os.Create("medhash.json")
-
-	if err != nil {
-		panic(err)
-	}
+	medhashFile, err := os.Create(flagManifestPath)
+	common.HandleError(err, 1)
 
 	_, err = medhashFile.Write(medhashJSON)
+	common.HandleError(err, 1)
 
-	if err != nil {
-		panic(err)
-	}
-
-	medhashFile.Sync()
+	err = medhashFile.Sync()
+	common.HandleError(err, 1)
 
 	fmt.Println("Done!")
 }
