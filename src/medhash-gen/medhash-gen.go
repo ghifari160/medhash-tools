@@ -19,7 +19,7 @@ import (
 
 const NAME string = "medhash-gen"
 
-const DEFAULT_FLAGMANIFESTPATH string = "__ROOT__"
+const DEFAULT_FLAGMANIFEST string = "__TARGET__"
 
 func main() {
 	targetDir := "."
@@ -30,8 +30,8 @@ func main() {
 	var flagVerbose bool
 	flag.BoolVar(&flagVerbose, "v", false, "Verbose mode")
 
-	var flagManifestPath string
-	flag.StringVar(&flagManifestPath, "manifest", DEFAULT_FLAGMANIFESTPATH, "Manifest output path")
+	var flagManifest string
+	flag.StringVar(&flagManifest, "manifest", DEFAULT_FLAGMANIFEST, "Manifest output path")
 
 	flag.Parse()
 
@@ -45,10 +45,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	if flagManifestPath == DEFAULT_FLAGMANIFESTPATH {
-		flagManifestPath = path.Join(targetDir, medhash.MEDHASH_MANIFEST_NAME)
-	} else {
-		flagManifestPath = path.Join(flagManifestPath, medhash.MEDHASH_MANIFEST_NAME)
+	if flagManifest == DEFAULT_FLAGMANIFEST {
+		flagManifest = path.Join(targetDir, medhash.MEDHASH_MANIFEST_NAME)
 	}
 
 	homeDir, _ := os.UserHomeDir()
@@ -57,8 +55,8 @@ func main() {
 		targetDir = path.Join(homeDir, targetDir[1:])
 	}
 
-	if strings.HasPrefix(flagManifestPath, "~") {
-		flagManifestPath = path.Join(homeDir, flagManifestPath[1:])
+	if strings.HasPrefix(flagManifest, "~") {
+		flagManifest = path.Join(homeDir, flagManifest[1:])
 	}
 
 	cwd, _ := os.Getwd()
@@ -66,7 +64,7 @@ func main() {
 	if flagVerbose {
 		fmt.Printf("Working Dir: %s\n", cwd)
 		fmt.Printf("Target Dir: %s\n", targetDir)
-		fmt.Printf("Manifest Path: %s\n", flagManifestPath)
+		fmt.Printf("Manifest: %s\n", flagManifest)
 	}
 
 	fmt.Println("Generating hash files")
@@ -161,7 +159,7 @@ func main() {
 	medhashJSON, err := json.MarshalIndent(medHash, "", "    ")
 	common.HandleError(err, 1)
 
-	medhashFile, err := os.Create(flagManifestPath)
+	medhashFile, err := os.Create(flagManifest)
 	common.HandleError(err, 1)
 
 	_, err = medhashFile.Write(medhashJSON)
