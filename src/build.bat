@@ -38,21 +38,21 @@ exit /B 0
 
 :: Move binary to the release directory
 :: %~1: Tool name
-:: %~2: Platform
-:: %~3: Architecture
+:: %~2: Source
+:: %~3: Platform_Architecture
 :: %~4: Suffix
 :move_helper
-echo Moving %~1 to %releaseDir%\%ver%\%~1-%~2_%~3-%ver%%~4
-move /y %buildDir%\%~1 %releaseDir%\%ver%\%~1-%~2_%~3-%ver%%~4
+echo Moving %~1 to %releaseDir%\%ver%\%~1-%~3-%ver%%~4
+move /y %buildDir%\%~2 %releaseDir%\%ver%\%~1-%~3-%ver%%~4
 exit /B 0
 
 :: Linux
 :build_linux
 call :build_all linux, 386, -386
 
-call :move_helper medhash-gen-386, linux, 386
-call :move_helper medhash-chk-386, linux, 386
-call :move_helper medhash-upgrade-386, linux, 386
+call :move_helper medhash-gen, medhash-gen-386, linux_386
+call :move_helper medhash-chk, medhash-chk-386, linux_386
+call :move_helper medhash-upgrade, medhash-upgrade-386, linux_386
 exit /B 0
 
 :: macOS (build not supported)
@@ -64,9 +64,9 @@ exit /B 0
 :build_windows
 call :build_all windows, 386, -386
 
-call :move_helper medhash-gen-386, windows, x86, .exe
-call :move_helper medhash-chk-386, windows, x86, .exe
-call :move_helper medhash-upgrade-386, windows, x86, .exe
+call :move_helper medhash-gen, medhash-gen-386, windows_x86, .exe
+call :move_helper medhash-chk, medhash-chk-386, windows_x86, .exe
+call :move_helper medhash-upgrade, medhash-upgrade-386, windows_x86, .exe
 exit /B 0
 
 :main

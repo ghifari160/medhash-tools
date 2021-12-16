@@ -43,27 +43,27 @@ merge () {
 }
 
 # Move binary to the release directory
-# $1: Tool name
-# $2: Platform
-# $3: Architecture
+# $1: Tool Name
+# $2: Source
+# $3: Platform_Architecture
 # $4: Suffix
 move_helper () {
-    echo "Moving $1 to $releaseDir/$ver/$1-$2_$3-$ver$4"
-    mv $buildDir/$1 $releaseDir/$ver/$1-$2_$3-$ver$4
+    echo "Moving $1 to $releaseDir/$ver/$1-$3-$ver$4"
+    mv $buildDir/$2 $releaseDir/$ver/$1-$3-$ver$4
 }
 
 # Linux
 build_linux () {
     build_all linux 386 -386
 
-    move_helper medhash-gen-386 linux 386
-    move_helper medhash-chk-386 linux 386
-    move_helper medhash-upgrade-386 linux 386
+    move_helper medhash-gen medhash-gen-386 linux_386
+    move_helper medhash-chk medhash-chk-386 linux_386
+    move_helper medhash-upgrade medhash-upgrade-386 linux_386
 }
 
 # macOS
 build_macos () {
-    if [ $(uname -s) == Darwin* ]; then
+    if [[ "$OSTYPE" == "darwin"* ]]; then
         build_all darwin amd64 -intel
         build_all darwin arm64 -m1
 
@@ -73,7 +73,7 @@ build_macos () {
 
         rm -f $buildDir/medhash*
     else
-        echo "Cannot build for macOS on non-macOS host machine"
+        echo "Cannot build macOS universal binary on non-macOS host machine"
     fi
 }
 
@@ -81,9 +81,9 @@ build_macos () {
 build_windows () {
     build_all windows 386 -386
 
-    move_helper medhash-gen-386 windows x86 .exe
-    move_helper medhash-chk-386 windows x86 .exe
-    move_helper medhash-upgrade-386 windows x86 .exe
+    move_helper medhash-gen medhash-gen-386 windows_x86 .exe
+    move_helper medhash-chk medhash-chk-386 windows_x86 .exe
+    move_helper medhash-upgrade medhash-upgrade-386 windows_x86 .exe
 }
 
 if [ ! -d $buildDir ]; then
