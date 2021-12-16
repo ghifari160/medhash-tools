@@ -19,6 +19,8 @@ import (
 
 const NAME string = "medhash-chk"
 
+const DEFAULT_FLAGFILE string = "__FILE__"
+
 func main() {
 	targetDir := "."
 
@@ -27,6 +29,9 @@ func main() {
 
 	var flagVerbose bool
 	flag.BoolVar(&flagVerbose, "v", false, "Verbose mode")
+
+	var flagFile string
+	flag.StringVar(&flagFile, "file", DEFAULT_FLAGFILE, "Verify a specific file in the manifest")
 
 	flag.Parse()
 
@@ -65,6 +70,7 @@ func main() {
 
 	var medHash medhash.MedHash
 	err = json.Unmarshal(medhashFile, &medHash)
+	common.HandleError(err, 1)
 
 	fmt.Println("Checking hash files")
 
@@ -72,24 +78,31 @@ func main() {
 	errMap := make(map[string]error)
 
 	for i := 0; i < len(medHash.Media); i++ {
-		mediaPath := ""
-		if targetDir != "." {
-			mediaPath = path.Join(targetDir, medHash.Media[i].Path)
-		} else {
-			mediaPath = medHash.Media[i].Path
+		skip := false
+
+		if flagFile != DEFAULT_FLAGFILE && medHash.Media[i].Path != flagFile {
+			skip = true
 		}
 
-		fmt.Printf("  %s: ", mediaPath)
+		if !skip {
+			mediaPath := ""
+			if targetDir != "." {
+				mediaPath = path.Join(targetDir, medHash.Media[i].Path)
+			} else {
+				mediaPath = medHash.Media[i].Path
+			}
 
-		valid, err := medhash.ChkHash(mediaPath, medHash.Media[i].Hash)
-		if err != nil {
-			errMap[medHash.Media[i].Path] = err
-		}
+			fmt.Printf("  %s: ", mediaPath)
 
-		if !valid {
-			invalidCount++
+			valid, err := medhash.ChkHash(mediaPath, medHash.Media[i].Hash)
+			if err != nil {
+				errMap[medHash.Media[i].Path] = err
+			}
+
+			if !valid {
+				invalidCount++
 				common.ColorPrintln("\x1B[31m", "ERROR")
-		} else {
+			} else {
 				common.ColorPrintln("\x1B[32m", "OK")
 			}
 		}
