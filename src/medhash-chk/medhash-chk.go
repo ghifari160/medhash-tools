@@ -1,72 +1,107 @@
+// MedHash Tools
+// Copyright (c) 2021 GHIFARI160
+// MIT License
+
 package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
+	"strings"
 
-	"github.com/ghifari160/medhash-tools/src/data"
-	"github.com/ghifari160/medhash-tools/src/packageinfo"
+	"github.com/ghifari160/medhash-tools/src/common"
+	"github.com/ghifari160/medhash-tools/src/medhash"
 )
 
-func main() {
-	root := "."
+const NAME string = "medhash-chk"
 
-	if len(os.Args) > 1 {
-		root = os.Args[1]
+func main() {
+	targetDir := "."
+
+	var flagVersion bool
+	flag.BoolVar(&flagVersion, "version", false, "Print version")
+
+	var flagVerbose bool
+	flag.BoolVar(&flagVerbose, "v", false, "Verbose mode")
+
+	flag.Parse()
+
+	if len(flag.Args()) > 0 {
+		targetDir = flag.Args()[0]
 	}
 
-	fmt.Print(packageinfo.Name)
-	fmt.Print(" v")
-	fmt.Println(packageinfo.Version)
+	common.PrintHeader(NAME)
+
+	if flagVersion {
+		os.Exit(0)
+	}
 
 	cwd, _ := os.Getwd()
 
-	fmt.Print("Working Dir: ")
-	fmt.Println(cwd)
+	homeDir, _ := os.UserHomeDir()
 
-	fmt.Print("Target Dir: ")
-	fmt.Println(root)
-
-	medhashFile, err := ioutil.ReadFile(root + "/medhash.json")
-
-	if err != nil {
-		panic(err)
+	if strings.HasPrefix(targetDir, "~") {
+		targetDir = path.Join(homeDir, targetDir[1:])
 	}
 
-	var medhash data.Medhash
-	err = json.Unmarshal(medhashFile, &medhash)
+	if flagVerbose {
+		fmt.Printf("Working Dir: %s\n", cwd)
+		fmt.Printf("Target Dir: %s\n", targetDir)
+	}
+
+	medhashFile, err := ioutil.ReadFile(path.Join(targetDir, medhash.MEDHASH_MANIFEST_NAME))
+	if err != nil {
+		if os.IsNotExist(err) {
+			fmt.Printf("%s does not exists in the target directory\n", medhash.MEDHASH_MANIFEST_NAME)
+			os.Exit(1)
+		} else {
+			common.HandleError(err, 1)
+		}
+	}
+
+	var medHash medhash.MedHash
+	err = json.Unmarshal(medhashFile, &medHash)
 
 	fmt.Println("Checking hash files")
 
-	errCount := 0
-	for i := 0; i < len(medhash.Media); i++ {
-		berr := false
+	invalidCount := 0
+	errMap := make(map[string]error)
 
-		path := ""
-		if root != "." {
-			path = root + "/" + medhash.Media[i].Path
+	for i := 0; i < len(medHash.Media); i++ {
+		mediaPath := ""
+		if targetDir != "." {
+			mediaPath = path.Join(targetDir, medHash.Media[i].Path)
 		} else {
-			path = medhash.Media[i].Path
+			mediaPath = medHash.Media[i].Path
 		}
 
-		fmt.Print("  ")
-		fmt.Print(path)
-		fmt.Print(": ")
+		fmt.Printf("  %s: ", mediaPath)
 
-		berr = !data.ChkHash(path, medhash.Media[i].Hash)
+		valid, err := medhash.ChkHash(mediaPath, medHash.Media[i].Hash)
+		if err != nil {
+			errMap[medHash.Media[i].Path] = err
+		}
 
-		if berr {
-			errCount++
+		if !valid {
+			invalidCount++
 			fmt.Println("Error")
 		} else {
 			fmt.Println("OK")
 		}
 	}
 
-	if errCount > 0 {
-		println("Media integrity error detected!")
+	if len(errMap) > 0 {
+		for p, e := range errMap {
+			fmt.Fprintf(os.Stderr, "  %s: %v\n", p, e)
+		}
+	}
+
+	if invalidCount > 0 {
+		fmt.Fprintln(os.Stderr, "Media integrity error detected!")
 	}
 
 	fmt.Println("Done!")
