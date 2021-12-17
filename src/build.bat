@@ -5,7 +5,7 @@
 @echo off
 
 SETLOCAL
-set ver=0.3.0
+set ver=0.4.0
 set buildDir=..\out
 set releaseDir=..\dist
 

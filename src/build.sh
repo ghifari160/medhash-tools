@@ -4,7 +4,7 @@
 # Copyright (c) 2021 GHIFARI160
 # MIT License
 
-ver="0.3.0"
+ver="0.4.0"
 buildDir="../out"
 releaseDir="../dist"
 
