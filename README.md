@@ -2,6 +2,30 @@
 
 Simple tools for verifying media file integrity.
 
+## Usage
+
+Generating medhash
+
+``` shell
+medhash-gen [target dir]
+```
+
+Verifying medhash
+
+``` shell
+medhash-chk [target dir]
+```
+
+Upgrading medhash from previous versions
+
+``` shell
+medhash-upgrade [target dir]
+```
+
+**Note:** specifying a target directory will run the appropriate tool in scoped mode.
+In scoped mode, both `medhash-gen` and `medhash-chk` will generate and verify hashes for media in the target directory.
+`medhash-upgrade` will _enter_ the directory and attempt to upgrade medhash file to the current format.
+
 ## Building
 
 Building requires a working Go 1.15+ installation.
@@ -39,26 +63,20 @@ This is done by building an Intel binary and an M1 binary, then merging the two 
 
 To clean the build environment, run `clean.sh` in Linux and macOS, and `clean.bat` in Windows.
 
-## Usage
+## Packing for release
 
-Generating medhash
+Packing requires a working `tar` and `zip` installationg.
 
-``` shell
-medhash-gen [target dir]
-```
-
-Verifying medhash
+Enter the source directory and run packing script
 
 ``` shell
-medhash-chk [target dir]
+./pack.sh
 ```
 
-Upgrading medhash from previous versions
+The packing script will skip a platform if its archives are missing.
+
+You can specify a packing target if necessary
 
 ``` shell
-medhash-upgrade [target dir]
+./pack.sh linux
 ```
-
-**Note:** specifying a target directory will run the appropriate tool in scoped mode.
-In scoped mode, both `medhash-gen` and `medhash-chk` will generate and verify hashes for media in the target directory.
-`medhash-upgrade` will _enter_ the directory and attempt to upgrade medhash file to the current format.
