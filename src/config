@@ -1,0 +1,17 @@
+# MedHash Tools
+# Copyright (c) 2021 GHIFARI160
+# MIT License
+
+ver="0.4.0"
+identifier="com.ghifari160.medhash-tools"
+
+defaultInstallLocation_macOS="/Applications"
+
+buildDir="../out/build"
+releaseDir="../dist"
+
+pkgDir="../out/pkg"
+pkgScriptsDir="pkgscripts"
+
+buildArgs="-trimpath"
+ldArgs="-s -w -X github.com/ghifari160/medhash-tools/src/common.VERSION=$ver"

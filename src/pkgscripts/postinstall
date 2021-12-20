@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# MedHash Tools
+# Copyright (c) 2021 GHIFARI160
+# MIT License
+
+# $1: Path to package
+# $2: Target location
+# $3: Target volume
+
+appFolder=medhash-tools/bin
+
+rm -f /usr/local/bin/medhash-gen
+rm -f /usr/local/bin/medhash-chk
+rm -f /usr/local/bin/medhash-upgrade
+
+ln -s $2/$appFolder/medhash-gen /usr/local/bin/
+ln -s $2/$appFolder/medhash-chk /usr/local/bin/
+ln -s $2/$appFolder/medhash-upgrade /usr/local/bin/
+
+exit 0

@@ -6,7 +6,7 @@
 
 SETLOCAL
 set ver=0.4.0
-set buildDir=..\out
+set buildDir=..\out\build
 set releaseDir=..\dist
 
 set buildArgs=-trimpath
@@ -43,7 +43,7 @@ exit /B 0
 :: %~4: Suffix
 :move_helper
 echo Moving %~1 to %releaseDir%\%ver%\%~1-%~3-%ver%%~4
-move /y %buildDir%\%~2 %releaseDir%\%ver%\%~1-%~3-%ver%%~4
+move /y %buildDir%\%~2 %buildDir%\%~1-%~3-%ver%%~4
 exit /B 0
 
 :: Linux
@@ -73,11 +73,6 @@ exit /B 0
 if not exist %buildDir% (
     echo Creating build directory
     mkdir %buildDir%
-)
-
-if not exist %releaseDir% (
-    echo Creating release directory for v%ver%
-    mkdir %releaseDir%\%ver%
 )
 
 echo %~1

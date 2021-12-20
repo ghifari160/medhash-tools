@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="1">
+    <title>MedHash Tools</title>
+    <options customize="never" require-scripts="false" hostArchitectures="x86_64,arm64"/>
+    <choices-outline>
+        <line choice="main"/>
+    </choices-outline>
+    <choice id="main" visible="false">
+        <pkg-ref id="com.ghifari160.medhash-tools"/>
+    </choice>
+    <license file="LICENSE.rtf"/>
+    <pkg-ref id="com.ghifari160.medhash-tools">#medhash-tools.pkg</pkg-ref>
+</installer-gui-script>

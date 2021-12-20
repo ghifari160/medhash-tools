@@ -4,12 +4,8 @@
 # Copyright (c) 2021 GHIFARI160
 # MIT License
 
-ver="0.4.0"
-buildDir="../out"
-releaseDir="../dist"
-
-buildArgs="-trimpath"
-ldArgs="-s -w -X github.com/ghifari160/medhash-tools/src/common.VERSION=$ver"
+# buildArgs="-trimpath"
+# ldArgs="-s -w -X github.com/ghifari160/medhash-tools/src/common.VERSION=$ver"
 
 # Build a given tool for a given platform and architecture
 # $1: GOOS
@@ -39,7 +35,7 @@ build_all () {
 # $5: Suffix
 merge () {
     echo "Building universal binary for $1"
-    lipo -create -output $releaseDir/$ver/$1-$4-$ver$5 $buildDir/$2 $buildDir/$3
+    lipo -create -output $buildDir/$1-$4-$ver$5 $buildDir/$2 $buildDir/$3
 }
 
 # Move binary to the release directory
@@ -49,7 +45,7 @@ merge () {
 # $4: Suffix
 move_helper () {
     echo "Moving $1 to $releaseDir/$ver/$1-$3-$ver$4"
-    mv $buildDir/$2 $releaseDir/$ver/$1-$3-$ver$4
+    mv $buildDir/$2 $buildDir/$1-$3-$ver$4
 }
 
 # Linux
@@ -70,8 +66,6 @@ build_macos () {
         merge medhash-gen medhash-gen-intel medhash-gen-m1 macos
         merge medhash-chk medhash-chk-intel medhash-chk-m1 macos
         merge medhash-upgrade medhash-upgrade-intel medhash-upgrade-m1 macos
-
-        rm -f $buildDir/medhash*
     else
         echo "Cannot build macOS universal binary on non-macOS host machine"
     fi
@@ -86,14 +80,11 @@ build_windows () {
     move_helper medhash-upgrade medhash-upgrade-386 windows_x86 .exe
 }
 
+source config
+
 if [ ! -d $buildDir ]; then
     echo "Creating build directory"
     mkdir -p $buildDir
-fi
-
-if [ ! -d $releaseDir/$ver ]; then
-    echo "Creating release directory for v$ver"
-    mkdir -p $releaseDir/$ver
 fi
 
 case $1 in
