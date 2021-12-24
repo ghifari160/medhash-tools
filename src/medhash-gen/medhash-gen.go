@@ -80,7 +80,7 @@ func main() {
 	common.HandleError(err, 1)
 
 	var media []medhash.Media
-	mediaMap := make(map[string]*medhash.Hash)
+	mediaMap := make(map[string]*medhash.Media)
 
 	var manifestIgnorePath string
 	if targetDir != "." {
@@ -95,9 +95,9 @@ func main() {
 		if infos[i].Mode().IsRegular() && files[i] != manifestIgnorePath {
 			fmt.Printf("  %s\n", files[i])
 
-			hash, err := medhash.GenHash(files[i])
+			med, err := medhash.GenHash(files[i])
 			if err == nil {
-				mediaMap[files[i]] = hash
+				mediaMap[files[i]] = med
 			} else {
 				errMap[files[i]] = err
 			}
@@ -106,13 +106,13 @@ func main() {
 
 	fmt.Println("Sanity checking files")
 
-	sanitizedMediaMap := make(map[string]*medhash.Hash)
+	sanitizedMediaMap := make(map[string]*medhash.Media)
 	invalidCount := 0
 
 	for k, v := range mediaMap {
 		fmt.Printf("  %s: ", k)
 
-		valid, err := medhash.ChkHash(k, v)
+		valid, err := medhash.ChkHash(v)
 		if err != nil {
 			errMap[k] = err
 		}
@@ -134,11 +134,8 @@ func main() {
 
 	media = make([]medhash.Media, len(sanitizedMediaMap))
 	mI := 0
-	for k, v := range sanitizedMediaMap {
-		media[mI] = medhash.Media{
-			Path: k,
-			Hash: v,
-		}
+	for _, v := range sanitizedMediaMap {
+		media[mI] = *v
 
 		mI++
 	}
