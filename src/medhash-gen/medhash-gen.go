@@ -9,7 +9,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -36,7 +35,7 @@ func main() {
 	flag.Parse()
 
 	if len(flag.Args()) > 0 {
-		targetDir = path.Clean(flag.Args()[0])
+		targetDir = filepath.Clean(flag.Args()[0])
 	}
 
 	common.PrintHeader(NAME)
@@ -46,17 +45,17 @@ func main() {
 	}
 
 	if flagManifest == DEFAULT_FLAGMANIFEST {
-		flagManifest = path.Join(targetDir, medhash.MEDHASH_MANIFEST_NAME)
+		flagManifest = filepath.Join(targetDir, medhash.MEDHASH_MANIFEST_NAME)
 	}
 
 	homeDir, _ := os.UserHomeDir()
 
 	if strings.HasPrefix(targetDir, "~") {
-		targetDir = path.Join(homeDir, targetDir[1:])
+		targetDir = filepath.Join(homeDir, targetDir[1:])
 	}
 
 	if strings.HasPrefix(flagManifest, "~") {
-		flagManifest = path.Join(homeDir, flagManifest[1:])
+		flagManifest = filepath.Join(homeDir, flagManifest[1:])
 	}
 
 	cwd, _ := os.Getwd()
@@ -84,7 +83,7 @@ func main() {
 
 	var manifestIgnorePath string
 	if targetDir != "." {
-		manifestIgnorePath = path.Join(targetDir, medhash.MEDHASH_MANIFEST_NAME)
+		manifestIgnorePath = filepath.Join(targetDir, medhash.MEDHASH_MANIFEST_NAME)
 	} else {
 		manifestIgnorePath = medhash.MEDHASH_MANIFEST_NAME
 	}
