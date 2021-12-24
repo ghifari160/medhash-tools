@@ -85,6 +85,10 @@ func main() {
 	err = json.Unmarshal(medhashFile, &medHash)
 	common.HandleError(err, 1)
 
+	if flagVerbose && medHash.Generator != "" {
+		fmt.Printf("Generator: %s\n", medHash.Generator)
+	}
+
 	fmt.Println("Checking hash files")
 
 	invalidCount := 0
