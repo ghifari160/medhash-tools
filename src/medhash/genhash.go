@@ -23,14 +23,14 @@ const DEFAULT_BUFFERSIZE int = 4096
 func bufferedGenHash(path string, hasher *hash.Hash, bufferSize int) error {
 	f, err := os.Open(path)
 	if err != nil {
-		return fmtError(err)
+		return err
 	}
 
 	file := bufio.NewReaderSize(f, bufferSize)
 
 	_, err = io.Copy((*hasher), file)
 	if err != nil {
-		return fmtError(err)
+		return err
 	}
 
 	return f.Close()
