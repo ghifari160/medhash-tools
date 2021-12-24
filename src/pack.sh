@@ -57,6 +57,8 @@ copy_helper () {
 # $1: Path to RTF
 # $2: Path to source
 license_builder () {
+    echo "Generating license RTF"
+
     touch $1
 
     licenseRTF=$(cat $2)
@@ -66,7 +68,82 @@ license_builder () {
 
     echo "{\\rtf1\\ansi\\def0 {\\fonttbl \\f0 HelveticaNeue-Light;}" > $1
     echo "$licenseRTF" >> $1
+
+    echo "\\line\\line MedHash Tools includes the following libraries and projects:\\line\\line" >> "$1"
+
+    for d in ../thirdparty/*/; do
+        id="N/A"
+        infoText=
+        licenseText=
+
+        if [ -f $d/ID ]; then
+            id=$(cat $d/ID)
+        fi
+
+        if [ -f $d/INFO ]; then
+            infoText=$(cat $d/INFO)
+        fi
+
+        if [ -f $d/LICENSE ]; then
+            licenseText=$(cat $d/LICENSE)
+        fi
+
+        infoText=$(echo "$infoText" | tr '\n' ' ')
+
+        echo "\\f0\\fs38 $infoText \\f0\\fs28" >> "$1"
+        echo "\\line" >> "$1"
+
+        if [ $id = "BSD-3-Clause" ]; then
+            licenseText=$(echo "$licenseText" | sed 's/^   \* /\\line \* /g')
+            licenseText=$(echo "$licenseText" | sed 's/^$/\\line\\line/g')
+            licenseText=$(echo "$licenseText" | tr '\n' ' ')
+
+            echo "$licenseText" >> "$1"
+        else
+            licenseText=$(echo "$licenseText" | sed 's/^$/\\line\\line/g')
+            licenseText=$(echo "$licenseText" | tr '\n' ' ')
+
+            echo "$licenseText" >> "$1"
+        fi
+    done
+
     echo "}" >> $1
+}
+
+# Build license text
+# $1: Path to dest
+# $2: Path to source
+license_text_builder () {
+    echo "Generating license text"
+
+    touch "$1"
+
+    cat "$2" > "$1"
+
+    echo "MedHash Tools includes the following libraries and projects:" >> "$1"
+    echo >> "$1"
+
+    for d in ../thirdparty/*/; do
+        id="N/A"
+        infoText=
+        licenseText=
+
+        if [ -f $d/ID ]; then
+            id=$(cat $d/ID)
+        fi
+
+        if [ -f $d/INFO ]; then
+            infoText=$(cat $d/INFO)
+        fi
+
+        if [ -f $d/LICENSE ]; then
+            licenseText=$(cat $d/LICENSE)
+        fi
+
+        echo "$infoText" >> "$1"
+        echo >> "$1"
+        echo "$licenseText" >> "$1"
+    done
 }
 
 # Create macOS component package
@@ -85,9 +162,9 @@ pkg_helper () {
              --filter Resources \
              $pkgDir/macos/medhash-tools$2
 
-    echo "Generating license text"
     mkdir -p $pkgDir/macos/Resources/en.lproj
     license_builder $pkgDir/macos/Resources/en.lproj/LICENSE.rtf ../LICENSE
+    license_text_builder $pkgDir/macos/Resources/en.lproj/LICENSE ../LICENSE
 
     echo "Building macOS installation package"
     productbuild --distribution Distribution.xml \
@@ -103,7 +180,7 @@ pack_linux () {
         copy_helper medhash-chk linux_386
         copy_helper medhash-upgrade linux_386
 
-        cp ../LICENSE $pkgDir/linux_386/LICENSE
+        license_text_builder $pkgDir/linux_386/LICENSE ../LICENSE
 
         echo "Packing for Linux_386... "
         pack_helper gzip linux_386
@@ -141,7 +218,7 @@ pack_macos () {
         copy_helper medhash-chk macos
         copy_helper medhash-upgrade macos
 
-        cp ../LICENSE $pkgDir/macos/LICENSE
+        license_text_builder $pkgDir/macos/LICENSE ../LICENSE
 
         echo "Packing for macOS... "
         pack_macos_tarball
@@ -159,7 +236,7 @@ pack_windows () {
         copy_helper medhash-chk windows_x86 .exe
         copy_helper medhash-upgrade windows_x86 .exe
 
-        cp ../LICENSE $pkgDir/windows_x86/LICENSE
+        license_text_builder $pkgDir/windows_x86/LICENSE ../LICENSE
 
         echo "Packing for Windows_x86... "
         pack_helper zip windows_x86 .exe

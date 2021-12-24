@@ -21,3 +21,5 @@ out/
 # Project-specific ignores
 medhash.json
 sums.txt
+config
+!src/config

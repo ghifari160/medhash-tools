@@ -4,10 +4,12 @@
 # Copyright (c) 2021 GHIFARI160
 # MIT License
 
-echo "Cleaning build directory"
-rm -rf ../out
+source config
+
+echo "Cleaning artifact directory"
+rm -rf $artifactDir
 
 echo "Cleaning release directory"
-rm -rf ../dist
+rm -rf $releaseDir
 
 echo "Done"

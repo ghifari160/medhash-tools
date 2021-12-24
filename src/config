@@ -7,11 +7,17 @@ identifier="com.ghifari160.medhash-tools"
 
 defaultInstallLocation_macOS="/Applications"
 
-buildDir="../out/build"
 releaseDir="../dist"
+artifactDir="../out"
 
-pkgDir="../out/pkg"
+buildDir="$artifactDir/build"
+
+pkgDir="$artifactDir/pkg"
 pkgScriptsDir="pkgscripts"
 
 buildArgs="-trimpath"
 ldArgs="-s -w -X github.com/ghifari160/medhash-tools/src/common.VERSION=$ver"
+
+if [ -f ../config ]; then
+    source ../config
+fi
