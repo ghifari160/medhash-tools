@@ -150,6 +150,7 @@ func main() {
 	}
 
 	medHash := medhash.New()
+	medHash.Generator = common.NAME + " v" + common.VERSION + ": " + NAME
 	medHash.Media = media
 
 	medhashJSON, err := json.MarshalIndent(medHash, "", "    ")
