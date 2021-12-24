@@ -10,7 +10,7 @@ func ChkHash(path string, hash *Hash) (bool, error) {
 		return false, fmtError(err)
 	}
 
-	if h.SHA256 != hash.SHA256 || h.SHA1 != hash.SHA1 || h.MD5 != hash.MD5 {
+	if h.SHA256 != hash.SHA256 || h.SHA3_256 != hash.SHA3_256 || h.SHA1 != hash.SHA1 || h.MD5 != hash.MD5 {
 		return false, nil
 	}
 

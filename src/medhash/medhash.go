@@ -11,8 +11,9 @@ const MEDHASH_MANIFEST_NAME = "medhash.json"
 const MEDHASH_ERROR_PREFIX = "medhash:"
 
 type MedHash struct {
-	Version string  `json:"version"`
-	Media   []Media `json:"media"`
+	Version   string  `json:"version"`
+	Generator string  `json:"generator,omitempty"`
+	Media     []Media `json:"media"`
 }
 
 func New() *MedHash {
@@ -25,9 +26,10 @@ type Media struct {
 }
 
 type Hash struct {
-	SHA256 string `json:"sha256"`
-	SHA1   string `json:"sha1"`
-	MD5    string `json:"md5"`
+	SHA256   string `json:"sha256"`
+	SHA3_256 string `json:"sha3-256"`
+	SHA1     string `json:"sha1"`
+	MD5      string `json:"md5"`
 }
 
 func fmtError(err error) error {

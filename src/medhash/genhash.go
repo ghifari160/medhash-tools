@@ -13,6 +13,8 @@ import (
 	"hash"
 	"io"
 	"os"
+
+	"golang.org/x/crypto/sha3"
 )
 
 func bufferedGenHash(path string, hasher *hash.Hash) error {
@@ -40,6 +42,13 @@ func GenHash(path string) (*Hash, error) {
 		return nil, fmtError(err)
 	}
 	hash.SHA256 = hex.EncodeToString(hasher.Sum(nil))
+
+	hasher = sha3.New256()
+	err = bufferedGenHash(path, &hasher)
+	if err != nil {
+		return nil, fmtError(err)
+	}
+	hash.SHA3_256 = hex.EncodeToString(hasher.Sum(nil))
 
 	hasher = sha1.New()
 	err = bufferedGenHash(path, &hasher)
