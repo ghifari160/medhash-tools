@@ -107,7 +107,7 @@ func main() {
 
 			fmt.Printf("  %s: ", mediaPath)
 
-			valid, err := medhash.ChkHash(mediaPath, medHash.Media[i].Hash)
+			valid, err := medhash.ChkHash(&medHash.Media[i])
 			if err != nil {
 				errMap[medHash.Media[i].Path] = err
 			}
