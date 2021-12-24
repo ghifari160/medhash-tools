@@ -13,17 +13,20 @@ import (
 	"hash"
 	"io"
 	"os"
+	"path/filepath"
 
 	"golang.org/x/crypto/sha3"
 )
 
-func bufferedGenHash(path string, hasher *hash.Hash) error {
+const DEFAULT_BUFFERSIZE int = 4096
+
+func bufferedGenHash(path string, hasher *hash.Hash, bufferSize int) error {
 	f, err := os.Open(path)
 	if err != nil {
 		return fmtError(err)
 	}
 
-	file := bufio.NewReader(f)
+	file := bufio.NewReaderSize(f, bufferSize)
 
 	_, err = io.Copy((*hasher), file)
 	if err != nil {
@@ -33,36 +36,42 @@ func bufferedGenHash(path string, hasher *hash.Hash) error {
 	return f.Close()
 }
 
-func GenHash(path string) (*Hash, error) {
-	hash := Hash{}
-	hasher := sha256.New()
+func GenHash(path string) (*Media, error) {
+	var err error
 
-	err := bufferedGenHash(path, &hasher)
+	var hasher hash.Hash
+	hash := Hash{}
+
+	hasher = sha256.New()
+	err = bufferedGenHash(path, &hasher, DEFAULT_BUFFERSIZE)
 	if err != nil {
 		return nil, fmtError(err)
 	}
 	hash.SHA256 = hex.EncodeToString(hasher.Sum(nil))
 
 	hasher = sha3.New256()
-	err = bufferedGenHash(path, &hasher)
+	err = bufferedGenHash(path, &hasher, DEFAULT_BUFFERSIZE)
 	if err != nil {
 		return nil, fmtError(err)
 	}
 	hash.SHA3_256 = hex.EncodeToString(hasher.Sum(nil))
 
 	hasher = sha1.New()
-	err = bufferedGenHash(path, &hasher)
+	err = bufferedGenHash(path, &hasher, DEFAULT_BUFFERSIZE)
 	if err != nil {
 		return nil, fmtError(err)
 	}
 	hash.SHA1 = hex.EncodeToString(hasher.Sum(nil))
 
 	hasher = md5.New()
-	err = bufferedGenHash(path, &hasher)
+	err = bufferedGenHash(path, &hasher, DEFAULT_BUFFERSIZE)
 	if err != nil {
 		return nil, fmtError(err)
 	}
 	hash.MD5 = hex.EncodeToString(hasher.Sum(nil))
 
-	return &hash, nil
+	return &Media{
+		Path: filepath.ToSlash(path),
+		Hash: &hash,
+	}, nil
 }

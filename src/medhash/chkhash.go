@@ -4,13 +4,18 @@
 
 package medhash
 
-func ChkHash(path string, hash *Hash) (bool, error) {
-	h, err := GenHash(path)
+import "path/filepath"
+
+func ChkHash(media *Media) (bool, error) {
+	m, err := GenHash(filepath.FromSlash(media.Path))
 	if err != nil {
 		return false, fmtError(err)
 	}
 
-	if h.SHA256 != hash.SHA256 || h.SHA3_256 != hash.SHA3_256 || h.SHA1 != hash.SHA1 || h.MD5 != hash.MD5 {
+	if m.Hash.SHA256 != media.Hash.SHA256 ||
+		(media.Hash.SHA3_256 != "" && m.Hash.SHA3_256 != media.Hash.SHA3_256) ||
+		m.Hash.SHA1 != media.Hash.SHA1 ||
+		m.Hash.MD5 != media.Hash.MD5 {
 		return false, nil
 	}
 
