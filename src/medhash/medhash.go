@@ -6,7 +6,8 @@ package medhash
 
 import "errors"
 
-const MEDHASH_FORMAT_VERSION_CURRENT = "0.3.0"
+const MEDHASH_FORMAT_VERSION_PREVIOUS = "0.3.0"
+const MEDHASH_FORMAT_VERSION_CURRENT = "0.4.0"
 const MEDHASH_MANIFEST_NAME = "medhash.json"
 const MEDHASH_ERROR_PREFIX = "medhash:"
 
