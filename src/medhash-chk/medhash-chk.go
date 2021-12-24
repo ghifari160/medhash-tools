@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/ghifari160/medhash-tools/src/common"
@@ -54,15 +54,15 @@ func main() {
 	homeDir, _ := os.UserHomeDir()
 
 	if flagManifest == DEFAULT_FLAGMANIFEST {
-		flagManifest = path.Join(targetDir, medhash.MEDHASH_MANIFEST_NAME)
+		flagManifest = filepath.Join(targetDir, medhash.MEDHASH_MANIFEST_NAME)
 	}
 
 	if strings.HasPrefix(flagManifest, "~") {
-		flagManifest = path.Join(homeDir, flagManifest[1:])
+		flagManifest = filepath.Join(homeDir, flagManifest[1:])
 	}
 
 	if strings.HasPrefix(targetDir, "~") {
-		targetDir = path.Join(homeDir, targetDir[1:])
+		targetDir = filepath.Join(homeDir, targetDir[1:])
 	}
 
 	if flagVerbose {
@@ -100,7 +100,7 @@ func main() {
 		if !skip {
 			mediaPath := ""
 			if targetDir != "." {
-				mediaPath = path.Join(targetDir, medHash.Media[i].Path)
+				mediaPath = filepath.Join(targetDir, medHash.Media[i].Path)
 			} else {
 				mediaPath = medHash.Media[i].Path
 			}
