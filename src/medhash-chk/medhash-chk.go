@@ -85,6 +85,24 @@ func main() {
 	err = json.Unmarshal(medhashFile, &medHash)
 	common.HandleError(err, 1)
 
+	manifestCurrent := false
+	manifestCompatible := false
+
+	// Manifest validation
+	if medHash.Version != "" && medHash.Version != medhash.MEDHASH_FORMAT_VERSION_CURRENT {
+		if medHash.Version == medhash.MEDHASH_FORMAT_VERSION_PREVIOUS {
+			manifestCompatible = true
+		}
+	} else if medHash.Version != "" && medHash.Version == medhash.MEDHASH_FORMAT_VERSION_CURRENT {
+		manifestCurrent = true
+		manifestCompatible = true
+	}
+
+	if !manifestCompatible {
+		fmt.Println("Manifest version is not compatible")
+		os.Exit(0)
+	}
+
 	if flagVerbose && medHash.Generator != "" {
 		fmt.Printf("Generator: %s\n", medHash.Generator)
 	}
@@ -133,6 +151,10 @@ func main() {
 
 	if invalidCount > 0 {
 		fmt.Fprintln(os.Stderr, "Media integrity error detected!")
+	}
+
+	if !manifestCurrent {
+		fmt.Println("Manifest version is not current. Rerun medhash-gen to upgrade.")
 	}
 
 	fmt.Println("Done!")
