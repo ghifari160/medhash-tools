@@ -127,6 +127,10 @@ func main() {
 				mediaPath = medHash.Media[i].Path
 			}
 
+			// Manifest Media paths are relative to targetDir. This is
+			// a workaround.
+			medHash.Media[i].Path = mediaPath
+
 			fmt.Printf("  %s: ", mediaPath)
 
 			valid, err := medhash.ChkHash(&medHash.Media[i])
