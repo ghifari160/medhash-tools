@@ -133,8 +133,12 @@ func main() {
 
 	media = make([]medhash.Media, len(sanitizedMediaMap))
 	mI := 0
-	for _, v := range sanitizedMediaMap {
+	for k, v := range sanitizedMediaMap {
 		media[mI] = *v
+		// medhash.GenHash() returns medhash.Media pointer for each
+		// Media, but the path is set to the absolute path. This is a
+		// workaround
+		media[mI].Path = k
 
 		mI++
 	}
