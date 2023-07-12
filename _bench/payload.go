@@ -48,7 +48,7 @@ func GenPayload(path string, size Size) error {
 // TempDir creates a new temporary directory and returns the absolute path.
 // If one cannot be created, TempDir panics.
 func TempDir() string {
-	path, err := os.MkdirTemp("", "medhash-tools_benchmark*****")
+	path, err := os.MkdirTemp("", "medhash-tools_benchmark")
 	if err != nil {
 		panic(fmt.Errorf("cannot create temporary directory: %w", err))
 	}
