@@ -32,7 +32,7 @@ func main() {
 
 	payloadSize := Size(args.PayloadSize) * GiB
 
-	fmt.Println("Generating payload")
+	fmt.Printf("Generating payload to %s\n", dir)
 
 	err := GenPayload(filepath.Join(dir, "payload"), payloadSize)
 	if err != nil {

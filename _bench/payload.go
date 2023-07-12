@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-const maxBuffer = 1 * 1024 * 1024 * 1024
+const maxBuffer = 1 * GiB
 
 // GenPayload generates payload of the specified size.
 func GenPayload(path string, size Size) error {
@@ -28,18 +28,22 @@ func GenPayload(path string, size Size) error {
 		return fmt.Errorf("cannot create payload: %w", err)
 	}
 
-	n, err := rand.Read(buf)
-	if err != nil {
-		return fmt.Errorf("cannot generate payload: %w", err)
-	}
+	for counter < int64(size) {
+		n, err := rand.Read(buf)
+		if err != nil {
+			return fmt.Errorf("cannot generate payload: %w", err)
+		}
 
-	if counter+int64(n) > int64(size) {
-		_, err = f.Write(buf[:int64(size)-counter])
-	} else {
-		_, err = f.Write(buf)
-	}
-	if err != nil {
-		return fmt.Errorf("cannot write to payload: %w", err)
+		if counter+int64(n) > int64(size) {
+			n, err = f.Write(buf[:int64(size)-counter])
+		} else {
+			n, err = f.Write(buf)
+		}
+		if err != nil {
+			return fmt.Errorf("cannot write to payload: %w", err)
+		}
+
+		counter += int64(n)
 	}
 
 	return f.Close()
