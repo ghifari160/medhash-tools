@@ -13,6 +13,7 @@ const Version = "0.6.0"
 
 func main() {
 	var args struct {
+		Gen *cmd.Gen        `arg:"subcommand:gen"`
 		Ver *cmd.GenericCmd `arg:"subcommand:version"`
 	}
 
@@ -28,6 +29,9 @@ func main() {
 	var c cmd.Command
 
 	switch {
+	case args.Gen != nil:
+		c = args.Gen
+
 	case args.Ver != nil:
 		c = new(cmd.GenericCmd)
 	}
