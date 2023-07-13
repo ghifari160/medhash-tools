@@ -13,8 +13,8 @@ const Version = "0.6.0"
 
 func main() {
 	var args struct {
-		Gen *cmd.Gen        `arg:"subcommand:gen"`
-		Ver *cmd.GenericCmd `arg:"subcommand:version"`
+		Gen *cmd.Gen        `arg:"subcommand:gen" help:"generate MedHash Manifest"`
+		Ver *cmd.GenericCmd `arg:"subcommand:version" help:"print tool version"`
 	}
 
 	p := arg.MustParse(&args)
