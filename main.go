@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/alexflint/go-arg"
+	"github.com/ghifari160/medhash-tools/cmd"
 )
 
 const Name = "MedHash Tools"
@@ -12,7 +13,7 @@ const Version = "0.6.0"
 
 func main() {
 	var args struct {
-		Ver *GenericCmd `arg:"subcommand:version"`
+		Ver *cmd.GenericCmd `arg:"subcommand:version"`
 	}
 
 	p := arg.MustParse(&args)
@@ -24,14 +25,14 @@ func main() {
 
 	printHeader()
 
-	var cmd Cmd
+	var c cmd.Command
 
 	switch {
 	case args.Ver != nil:
-		cmd = new(GenericCmd)
+		c = new(cmd.GenericCmd)
 	}
 
-	os.Exit(cmd.Execute())
+	os.Exit(c.Execute())
 }
 
 func printHeader() {
