@@ -66,7 +66,7 @@ func (g *Gen) Execute() (status int) {
 		c := config
 		c.Dir = dir
 
-		errs := g.gen(c)
+		errs := GenFunc(c, g.Ignores)
 
 		if errs != nil {
 			fmt.Println("Error!")
@@ -83,11 +83,11 @@ func (g *Gen) Execute() (status int) {
 	return
 }
 
-// gen generates a MedHash manifest using the provided config.
-func (g *Gen) gen(config medhash.Config) (errs []error) {
+// GenFunc generates a Manifest using the provided config.
+func GenFunc(config medhash.Config, ignores []string) (errs []error) {
 	media := make([]medhash.Media, 0)
 
-	err := filepath.Walk(config.Dir, func(path string, info fs.FileInfo, e error) error {
+	err := filepath.Walk(config.Dir, func(path string, info fs.FileInfo, err error) error {
 		if !info.Mode().IsRegular() {
 			return nil
 		}
@@ -97,9 +97,9 @@ func (g *Gen) gen(config medhash.Config) (errs []error) {
 		c := config
 		c.Dir = config.Dir
 
-		if e != nil {
+		if err != nil {
 			fmt.Println("ERROR")
-			errs = append(errs, e)
+			errs = append(errs, err)
 
 			return nil
 		}
@@ -112,7 +112,7 @@ func (g *Gen) gen(config medhash.Config) (errs []error) {
 			return nil
 		}
 
-		for _, ignore := range g.Ignores {
+		for _, ignore := range ignores {
 			matched, err := filepath.Match(ignore, rel)
 			if err != nil {
 				fmt.Println("ERROR")
@@ -150,17 +150,16 @@ func (g *Gen) gen(config medhash.Config) (errs []error) {
 	fmt.Println("Sanity checking files")
 
 	for i, med := range media {
-		fmt.Printf("  %s: ", med.Path)
+		fmt.Printf("  %s: ", (filepath.Join(config.Dir, med.Path)))
 
 		valid, err := medhash.ChkHash(config.Dir, med)
 		if err == nil && valid {
-			if err == nil {
-				fmt.Println("OK")
-				continue
-			} else {
-				fmt.Println("ERROR")
-				errs = append(errs, err)
-			}
+			fmt.Println("OK")
+
+			continue
+		} else if err == nil && !valid {
+			fmt.Println("ERROR")
+			errs = append(errs, fmt.Errorf("invalid hash for %s", med.Path))
 		} else {
 			fmt.Println("ERROR")
 			errs = append(errs, err)
