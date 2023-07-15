@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	github.com/alexflint/go-arg v1.4.3
+	github.com/stretchr/objx v0.1.0
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/crypto v0.11.0
 )
