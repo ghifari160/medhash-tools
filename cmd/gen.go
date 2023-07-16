@@ -27,22 +27,16 @@ type Gen struct {
 func (g *Gen) Execute() (status int) {
 	var config medhash.Config
 
-	if g.Default {
-		g.SHA3 = true
-		g.SHA256 = true
-		g.SHA1 = true
-		g.MD5 = true
-	} else if g.All {
-		g.SHA3 = true
-		g.SHA256 = true
-		g.SHA1 = true
-		g.MD5 = true
+	if g.All {
+		config = medhash.AllConfig
+	} else if g.SHA3 || g.SHA256 || g.SHA1 || g.MD5 {
+		config.SHA3 = g.SHA3
+		config.SHA256 = g.SHA256
+		config.SHA1 = g.SHA1
+		config.MD5 = g.MD5
+	} else if g.Default {
+		config = medhash.DefaultConfig
 	}
-
-	config.SHA3 = g.SHA3
-	config.SHA256 = g.SHA256
-	config.SHA1 = g.SHA1
-	config.MD5 = g.MD5
 
 	var manifestIgnored bool
 

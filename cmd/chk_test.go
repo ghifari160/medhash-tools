@@ -103,12 +103,8 @@ func (s *CmdSuite) TestChk() {
 	})
 
 	s.Run("all", func() {
-		testcommon.CreateManifest(s.T(), dir, payload, medhash.ManifestFormatVer, medhash.Config{
-			SHA3:   true,
-			SHA256: true,
-			SHA1:   true,
-			MD5:    true,
-		})
+		testcommon.CreateManifest(s.T(), dir, payload, medhash.ManifestFormatVer,
+			medhash.AllConfig)
 		s.T().Cleanup(func() {
 			err := os.Remove(filepath.Join(dir, medhash.DefaultManifestName))
 			s.Require().NoError(err)
@@ -120,23 +116,12 @@ func (s *CmdSuite) TestChk() {
 		status := c.Execute()
 		s.Require().Zero(status)
 
-		config := medhash.Config{
-			SHA3:   true,
-			SHA256: true,
-			SHA1:   true,
-			MD5:    true,
-		}
-
-		testcommon.VerifyManifest(s.T(), dir, config, payload.Hash)
+		testcommon.VerifyManifest(s.T(), dir, medhash.AllConfig, payload.Hash)
 	})
 
 	s.Run("default", func() {
-		testcommon.CreateManifest(s.T(), dir, payload, medhash.ManifestFormatVer, medhash.Config{
-			SHA3:   true,
-			SHA256: true,
-			SHA1:   true,
-			MD5:    true,
-		})
+		testcommon.CreateManifest(s.T(), dir, payload, medhash.ManifestFormatVer,
+			medhash.DefaultConfig)
 		s.T().Cleanup(func() {
 			err := os.Remove(filepath.Join(dir, medhash.DefaultManifestName))
 			s.Require().NoError(err)
@@ -148,23 +133,12 @@ func (s *CmdSuite) TestChk() {
 		status := c.Execute()
 		s.Require().Zero(status)
 
-		config := medhash.Config{
-			SHA3:   true,
-			SHA256: true,
-			SHA1:   true,
-			MD5:    true,
-		}
-
-		testcommon.VerifyManifest(s.T(), dir, config, payload.Hash)
+		testcommon.VerifyManifest(s.T(), dir, medhash.DefaultConfig, payload.Hash)
 	})
 
 	s.Run("manifest_path", func() {
-		testcommon.CreateManifest(s.T(), dir, payload, medhash.ManifestFormatVer, medhash.Config{
-			SHA3:   true,
-			SHA256: true,
-			SHA1:   true,
-			MD5:    true,
-		})
+		testcommon.CreateManifest(s.T(), dir, payload, medhash.ManifestFormatVer,
+			medhash.DefaultConfig)
 		err := os.Rename(filepath.Join(dir, medhash.DefaultManifestName),
 			filepath.Join(dir, "manifest.json"))
 		s.Require().NoError(err)
@@ -180,12 +154,7 @@ func (s *CmdSuite) TestChk() {
 		status := c.Execute()
 		s.Require().Zero(status)
 
-		config := medhash.Config{
-			SHA3:   true,
-			SHA256: true,
-			SHA1:   true,
-			MD5:    true,
-		}
+		config := medhash.DefaultConfig
 
 		manFile, err := os.ReadFile(filepath.Join(dir, "manifest.json"))
 		s.Require().NoError(err)

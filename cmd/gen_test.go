@@ -21,7 +21,7 @@ func (s *CmdSuite) TestGen() {
 
 		c := new(cmd.Gen)
 		c.Dirs = []string{dir}
-		c.Default = false
+		c.Default = true
 		c.SHA3 = true
 
 		status := c.Execute()
@@ -44,7 +44,7 @@ func (s *CmdSuite) TestGen() {
 
 		c := new(cmd.Gen)
 		c.Dirs = []string{dir}
-		c.Default = false
+		c.Default = true
 		c.SHA256 = true
 
 		status := c.Execute()
@@ -67,7 +67,7 @@ func (s *CmdSuite) TestGen() {
 
 		c := new(cmd.Gen)
 		c.Dirs = []string{dir}
-		c.Default = false
+		c.Default = true
 		c.SHA1 = true
 
 		status := c.Execute()
@@ -90,7 +90,7 @@ func (s *CmdSuite) TestGen() {
 
 		c := new(cmd.Gen)
 		c.Dirs = []string{dir}
-		c.Default = false
+		c.Default = true
 		c.MD5 = true
 
 		status := c.Execute()
@@ -113,7 +113,7 @@ func (s *CmdSuite) TestGen() {
 
 		c := new(cmd.Gen)
 		c.Dirs = []string{dir}
-		c.Default = false
+		c.Default = true
 		c.All = true
 
 		status := c.Execute()
@@ -121,14 +121,7 @@ func (s *CmdSuite) TestGen() {
 
 		s.Require().FileExists(filepath.Join(dir, medhash.DefaultManifestName))
 
-		config := medhash.Config{
-			SHA3:   true,
-			SHA256: true,
-			SHA1:   true,
-			MD5:    true,
-		}
-
-		testcommon.VerifyManifest(s.T(), dir, config, payload.Hash)
+		testcommon.VerifyManifest(s.T(), dir, medhash.DefaultConfig, payload.Hash)
 	})
 
 	s.Run("default", func() {
@@ -146,13 +139,6 @@ func (s *CmdSuite) TestGen() {
 
 		s.Require().FileExists(filepath.Join(dir, medhash.DefaultManifestName))
 
-		config := medhash.Config{
-			SHA3:   true,
-			SHA256: true,
-			SHA1:   true,
-			MD5:    true,
-		}
-
-		testcommon.VerifyManifest(s.T(), dir, config, payload.Hash)
+		testcommon.VerifyManifest(s.T(), dir, medhash.DefaultConfig, payload.Hash)
 	})
 }

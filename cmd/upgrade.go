@@ -30,22 +30,16 @@ type Upgrade struct {
 func (u *Upgrade) Execute() (status int) {
 	var config medhash.Config
 
-	if u.Default {
-		u.SHA3 = true
-		u.SHA256 = true
-		u.SHA1 = true
-		u.MD5 = true
-	} else if u.All {
-		u.SHA3 = true
-		u.SHA256 = true
-		u.SHA1 = true
-		u.MD5 = true
+	if u.All {
+		config = medhash.AllConfig
+	} else if u.SHA3 || u.SHA256 || u.SHA1 || u.MD5 {
+		config.SHA3 = u.SHA3
+		config.SHA256 = u.SHA256
+		config.SHA1 = u.SHA1
+		config.MD5 = u.MD5
+	} else if u.Default {
+		config = medhash.DefaultConfig
 	}
-
-	config.SHA3 = u.SHA3
-	config.SHA256 = u.SHA256
-	config.SHA1 = u.SHA1
-	config.MD5 = u.MD5
 
 	var manifestIgnored bool
 
