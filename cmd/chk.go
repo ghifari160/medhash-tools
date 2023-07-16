@@ -17,6 +17,18 @@ type Chk struct {
 }
 
 func (c *Chk) Execute() (status int) {
+	if len(c.Dirs) < 1 {
+		cwd, err := os.Getwd()
+		if err != nil {
+			fmt.Printf("error: %v\n", err)
+			status = 1
+
+			return
+		}
+
+		c.Dirs = append(c.Dirs, cwd)
+	}
+
 	for _, dir := range c.Dirs {
 		var manPath string
 

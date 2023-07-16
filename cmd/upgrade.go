@@ -14,7 +14,7 @@ import (
 
 // Upgrade subcommand upgrades legacy Manifest to the current spec version.
 type Upgrade struct {
-	Dirs    []string `arg:"positional,required"`
+	Dirs    []string `arg:"positional"`
 	Ignores []string `arg:"--ignore,-i" help:"ignore patterns"`
 
 	Force   bool `arg:"--force" help:"force upgrade current Manifest"`
@@ -39,6 +39,18 @@ func (u *Upgrade) Execute() (status int) {
 		config.MD5 = u.MD5
 	} else if u.Default {
 		config = medhash.DefaultConfig
+	}
+
+	if len(u.Dirs) < 1 {
+		cwd, err := os.Getwd()
+		if err != nil {
+			fmt.Printf("error: %v\n", err)
+			status = 1
+
+			return
+		}
+
+		u.Dirs = append(u.Dirs, cwd)
 	}
 
 	var manifestIgnored bool

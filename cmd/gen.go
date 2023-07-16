@@ -12,7 +12,7 @@ import (
 
 // Gen subcommand generates a MedHash manifest for the directories specified in Dirs.
 type Gen struct {
-	Dirs    []string `arg:"positional,required"`
+	Dirs    []string `arg:"positional"`
 	Ignores []string `arg:"--ignore,-i" help:"ignore patterns"`
 
 	Default bool `arg:"--default,-d" default:"true" help:"use default preset"`
@@ -36,6 +36,18 @@ func (g *Gen) Execute() (status int) {
 		config.MD5 = g.MD5
 	} else if g.Default {
 		config = medhash.DefaultConfig
+	}
+
+	if len(g.Dirs) < 1 {
+		cwd, err := os.Getwd()
+		if err != nil {
+			fmt.Printf("error: %v\n", err)
+			status = 1
+
+			return
+		}
+
+		g.Dirs = append(g.Dirs, cwd)
 	}
 
 	var manifestIgnored bool
