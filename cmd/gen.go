@@ -1,7 +1,3 @@
-// MedHash Tools
-// Copyright (c) 2023 GHIFARI160
-// MIT License
-
 package cmd
 
 import (
