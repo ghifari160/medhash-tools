@@ -23,3 +23,5 @@ medhash.json
 sums.txt
 config
 !src/config
+*.secrets
+*.vars

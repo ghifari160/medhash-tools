@@ -1,0 +1,7 @@
+-P ubuntu-latest=catthehacker/ubuntu:full-20.04
+-P ubuntu-22.04=catthehacker/ubuntu:full-20.04
+-P ubuntu-20.04=catthehacker/ubuntu:full-20.04
+-P ubuntu-18.04=catthehacker/ubuntu:full-18.04
+--secret-file act.secrets
+--var-file act.vars
+--artifact-server-path /tmp/artifacts

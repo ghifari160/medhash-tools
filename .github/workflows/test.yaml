@@ -1,0 +1,13 @@
+name: Test Go
+on: [ workflow_dispatch, push ]
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v4
+      with:
+        go-version-file: "go.mod"
+    - name: Run tests
+      run: go test -v ./...
