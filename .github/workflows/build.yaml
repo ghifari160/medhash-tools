@@ -27,6 +27,7 @@ jobs:
     - name: Build binary
       run: go build -trimpath -ldflags="-s -w" -o out/bin/medhash .
     - run: cp LICENSE out/
+    - run: cp CHANGELOG.md out/
     - name: Create archive
       run: |
         cd out && \
@@ -63,6 +64,7 @@ jobs:
     - name: Build binary
       run: go build -trimpath -ldflags="-s -w" -o out/bin/medhash .
     - run: cp LICENSE out/
+    - run: cp CHANGELOG.md out/
     - name: Create archive
       run: |
         cd out && \
@@ -99,6 +101,7 @@ jobs:
     - name: Build binary
       run: go build -trimpath -ldflags="-s -w" -o out/bin/medhash .
     - run: cp LICENSE out/
+    - run: cp CHANGELOG.md out/
     - name: Create archive
       run: |
         cd out && \
@@ -135,6 +138,7 @@ jobs:
     - name: Build binary
       run: go build -trimpath -ldflags="-s -w" -o out/bin/medhash .
     - run: cp LICENSE out/
+    - run: cp CHANGELOG.md out/
     - name: Create archive
       run: |
         cd out && \
@@ -171,6 +175,7 @@ jobs:
     - name: Build binary
       run: go build -trimpath -ldflags="-s -w" -o out/bin/medhash .
     - run: cp LICENSE out/
+    - run: cp CHANGELOG.md out/
     - name: Create archive
       run: |
         cd out && \
@@ -206,13 +211,15 @@ jobs:
       run: go install github.com/randall77/makefat@latest
     - name: Set env
       run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+    - run: mkdir out
+    - run: cp LICENSE out/
+    - run: cp CHANGELOG.md out/
 
     - name: Build arm64 binary
       env:
         GOOS: darwin
         GOARCH: arm64
       run: go build -trimpath -ldflags="-s -w" -o out/bin/medhash .
-    - run: cp LICENSE out/
     - name: Create arm64 archive
       run: |
         cd out && \
