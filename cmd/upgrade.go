@@ -17,7 +17,7 @@ type Upgrade struct {
 	Dirs    []string `arg:"positional,required"`
 	Ignores []string `arg:"--ignore,-i" help:"ignore patterns"`
 
-	Force   bool `arg:"--force,-" help:"force upgrade current Manifest"`
+	Force   bool `arg:"--force" help:"force upgrade current Manifest"`
 	Default bool `arg:"--default,-d" default:"true" help:"use default preset"`
 	All     bool `arg:"--all,-a" help:"use all algorithms"`
 

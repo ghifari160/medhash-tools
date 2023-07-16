@@ -13,9 +13,10 @@ const Version = "0.6.0"
 
 func main() {
 	var args struct {
-		Gen *cmd.Gen        `arg:"subcommand:gen" help:"generate MedHash Manifest"`
-		Chk *cmd.Chk        `arg:"subcommand:chk" help:"verify directories or files"`
-		Ver *cmd.GenericCmd `arg:"subcommand:version" help:"print tool version"`
+		Gen     *cmd.Gen        `arg:"subcommand:gen" help:"generate MedHash Manifest"`
+		Chk     *cmd.Chk        `arg:"subcommand:chk" help:"verify directories or files"`
+		Upgrade *cmd.Upgrade    `arg:"subcommand:upgrade" help:"upgrade MedHash Manifest"`
+		Ver     *cmd.GenericCmd `arg:"subcommand:version" help:"print tool version"`
 	}
 
 	p := arg.MustParse(&args)
@@ -35,6 +36,9 @@ func main() {
 
 	case args.Chk != nil:
 		c = args.Chk
+
+	case args.Upgrade != nil:
+		c = args.Upgrade
 
 	case args.Ver != nil:
 		c = new(cmd.GenericCmd)
