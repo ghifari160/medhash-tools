@@ -2,81 +2,88 @@
 
 Simple tools for verifying media file integrity.
 
+## Rewrite
+
+This project is undergoing a rewrite.
+
+This project was repurposed from a prototype.
+Rewriting this project meant that it could be designed in a more logical way.
+
+Code from before the rewrite are available under the `main` branch.
+
+### Performance comparison
+
+| Version | Duration (s) | Rate (GiB/s) | Payload Size (GiB) |
+|---------|--------------|--------------|--------------------|
+| v0.3.0  | 244.7713     | 0.0409       | 10.0000            |
+| Rewrite | 183.9187     | 0.0547       | 10.0000            |
+
+These figures are collected using the program in [`_bench`](_bench) with the following parameters:
+
+``` text
+go run . -q 5 -s 10 -c <command> -s 10
+```
+
+The program ran on a 2019 MacBook Pro (MacBookPro15,1) with Intel Core i7-9750H,
+16 GB 2400 MHz DDR4, Radeon Pro 560X 4 GB, macOS Ventura 13.4.1, Go 1.20.5.
+
 ## Usage
 
 Generating medhash
 
 ``` shell
-medhash-gen [target dir]
+medhash gen [target dir]
 ```
 
 Verifying medhash
 
 ``` shell
-medhash-chk [target dir]
+medhash chk [target dir]
 ```
 
 Upgrading medhash from previous versions
 
 ``` shell
-medhash-upgrade [target dir]
+medhash upgrade [target dir]
 ```
-
-**Note:** specifying a target directory will run the appropriate tool in scoped mode.
-In scoped mode, both `medhash-gen` and `medhash-chk` will generate and verify hashes for media in the target directory.
-`medhash-upgrade` will _enter_ the directory and attempt to upgrade medhash file to the current format.
 
 ## Building
 
-Building requires a working Go 1.15+ installation.
+Building requires a working Go 1.20+ installation.
 
 Clone and enter the repository
 
 ``` shell
 git clone https://github.com/ghifari160/medhash-tools
-cd medhash-tools/src
+cd medhash-tools
 ```
 
-Build the binaries (Linux and macOS)
+Build the binaries
 
 ``` shell
-./build.sh
+go build . -o out/bin/medhash
 ```
-
-Build the binaries (Windows)
-
-``` shell
-build.bat
-```
-
-The binaries are stored in `dist/{VERSION}`.
 
 You can specificy a build target if necessary
 
 ``` shell
-./build.sh linux
+GOOS=linux GOARCH=386 go build . -o out/bin/medhash
 ```
 
-**Note:** building the macOS target requires a macOS host machine.
-The macOS target builds a universal binary.
-This is done by building an Intel binary and an M1 binary, then merging the two with `lipo`.
+In the past, building the macOS target requires a macOS host machine.
+This is because the macOS target builds a universal binary using a macOS-specific tool (`lipo`).
+This is no longer the case.
+The universal binary for macOS is now generated with
+[randall77/makefat](https://github.com/randall77/makefat).
 
-To clean the build environment, run `clean.sh` in Linux and macOS, and `clean.bat` in Windows.
+## Release
 
-## Packing for release
+Release binaries are automatically built with GitHub Actions.
 
-Packing requires a working `tar` and `zip` installationg.
+Artifacts are automatically uploaded to GHIFARI160's download server.
+They are available for download from
+`https://projects.gassets.space/medhash-tools/{version}/medhash-{os_arch}.tar.gz`.
 
-Enter the source directory and run packing script
+## License
 
-``` shell
-./pack.sh
-```
-
-The packing script will skip a platform if its archives are missing.
-
-You can specify a packing target if necessary
-
-``` shell
-./pack.sh linux
-```
+MedHash Tools is distributed under the terms of the [MIT License](LICENSE).
