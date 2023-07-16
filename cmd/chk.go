@@ -1,7 +1,3 @@
-// MedHash Tools
-// Copyright (c) 2023 GHIFARI160
-// MIT License
-
 package cmd
 
 import (
@@ -49,7 +45,7 @@ func (c *Chk) Execute() (status int) {
 }
 
 func (c *Chk) chk(manPath, dir string, files []string) (errs []error) {
-	manFile, err := os.ReadFile(filepath.Join(dir, medhash.DefaultManifestName))
+	manFile, err := os.ReadFile(manPath)
 	if err != nil {
 		errs = append(errs, err)
 		return
