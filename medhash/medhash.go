@@ -7,6 +7,21 @@ package medhash
 const ManifestFormatVer = "0.4.0"
 const DefaultManifestName = "medhash.json"
 
+var (
+	DefaultConfig = Config{
+		SHA3:   true,
+		SHA256: true,
+		SHA1:   true,
+		MD5:    true,
+	}
+	AllConfig = Config{
+		SHA3:   true,
+		SHA256: true,
+		SHA1:   true,
+		MD5:    true,
+	}
+)
+
 // Manifest is a MedHash manifest.
 type Manifest struct {
 	Version   string  `json:"version"`
@@ -49,4 +64,23 @@ type Hash struct {
 	SHA1 string `json:"sha1,omitempty"`
 	// Deprecated: MD5 support is deprecated in spec v0.4.0.
 	MD5 string `json:"md5,omitempty"`
+}
+
+// Config configures the hasher.
+type Config struct {
+	// Dir is the path to the target directory.
+	Dir string
+	// Path is the path of the current media.
+	Path string
+
+	// SHA3 toggles the SHA3-256 hash generation.
+	SHA3 bool
+	// SHA256 toggles the SHA256 hash generation.
+	SHA256 bool
+	// SHA1 toggles the SHA1 hash generation.
+	// Deprecated: SHA1 support is deprecated in spec v0.4.0.
+	SHA1 bool
+	// MD5 toggles the MD5 hash generation.
+	// Deprecated: MD5 support is deprecated in spec v0.4.0.
+	MD5 bool
 }

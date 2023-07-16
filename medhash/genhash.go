@@ -17,25 +17,6 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
-// Config configures the hasher.
-type Config struct {
-	// Dir is the path to the target directory.
-	Dir string
-	// Path is the path of the current media.
-	Path string
-
-	// SHA3 toggles the SHA3-256 hash generation.
-	SHA3 bool
-	// SHA256 toggles the SHA256 hash generation.
-	SHA256 bool
-	// SHA1 toggles the SHA1 hash generation.
-	// Deprecated: SHA1 support is deprecated in spec v0.4.0.
-	SHA1 bool
-	// MD5 toggles the MD5 hash generation.
-	// Deprecated: MD5 support is deprecated in spec v0.4.0.
-	MD5 bool
-}
-
 // GenHash generates a hash for the media specified in the config path.
 // Hashes for the media are generated at the same time.
 func GenHash(config Config) (med Media, err error) {
