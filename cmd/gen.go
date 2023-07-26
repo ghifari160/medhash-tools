@@ -15,13 +15,7 @@ type Gen struct {
 	Dirs    []string `arg:"positional"`
 	Ignores []string `arg:"--ignore,-i" help:"ignore patterns"`
 
-	Default bool `arg:"--default,-d" default:"true" help:"use default preset"`
-	All     bool `arg:"--all,-a" help:"use all algorithms"`
-
-	SHA3   bool `arg:"--sha3" help:"use SHA3-256"`
-	SHA256 bool `arg:"--sha256" help:"use SHA256"`
-	SHA1   bool `arg:"--sha1" help:"use SHA1"`
-	MD5    bool `arg:"--md5" help:"use MD5"`
+	CmdConfig
 }
 
 func (g *Gen) Execute() (status int) {
