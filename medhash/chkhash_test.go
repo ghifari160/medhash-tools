@@ -26,7 +26,9 @@ func (s *MedHashTestSuite) TestChkHash() {
 
 		med := genManifest(s.T(), config)
 
-		valid, err := medhash.ChkHash(dir, med)
+		config.Dir = dir
+
+		valid, err := medhash.ChkHash(config, med)
 		s.Require().NoError(err)
 
 		s.True(valid)
@@ -38,7 +40,9 @@ func (s *MedHashTestSuite) TestChkHash() {
 
 		med := genManifest(s.T(), config)
 
-		valid, err := medhash.ChkHash(dir, med)
+		config.Dir = dir
+
+		valid, err := medhash.ChkHash(config, med)
 		s.Require().NoError(err)
 
 		s.True(valid)
@@ -50,7 +54,9 @@ func (s *MedHashTestSuite) TestChkHash() {
 
 		med := genManifest(s.T(), config)
 
-		valid, err := medhash.ChkHash(dir, med)
+		config.Dir = dir
+
+		valid, err := medhash.ChkHash(config, med)
 		s.Require().NoError(err)
 
 		s.True(valid)
@@ -62,7 +68,9 @@ func (s *MedHashTestSuite) TestChkHash() {
 
 		med := genManifest(s.T(), config)
 
-		valid, err := medhash.ChkHash(dir, med)
+		config.Dir = dir
+
+		valid, err := medhash.ChkHash(config, med)
 		s.Require().NoError(err)
 
 		s.True(valid)
@@ -77,7 +85,9 @@ func (s *MedHashTestSuite) TestChkHash() {
 
 		med := genManifest(s.T(), config)
 
-		valid, err := medhash.ChkHash(dir, med)
+		config.Dir = dir
+
+		valid, err := medhash.ChkHash(config, med)
 		s.Require().NoError(err)
 
 		s.True(valid)
@@ -93,7 +103,9 @@ func (s *MedHashTestSuite) TestChkHash() {
 		med := genManifest(s.T(), config)
 		med.Hash.SHA3_256 = "afafaf"
 
-		valid, err := medhash.ChkHash(dir, med)
+		config.Dir = dir
+
+		valid, err := medhash.ChkHash(config, med)
 		s.Require().NoError(err)
 
 		s.False(valid)
