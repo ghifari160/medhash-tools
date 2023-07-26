@@ -146,9 +146,11 @@ func GenFunc(config medhash.Config, ignores []string) (errs []error) {
 	fmt.Println("Sanity checking files")
 
 	for i, med := range media {
-		fmt.Printf("  %s: ", (filepath.Join(config.Dir, med.Path)))
+		c := config
 
-		valid, err := medhash.ChkHash(config.Dir, med)
+		fmt.Printf("  %s: ", (filepath.Join(c.Dir, med.Path)))
+
+		valid, err := medhash.ChkHash(c, med)
 		if err == nil && valid {
 			fmt.Println("OK")
 

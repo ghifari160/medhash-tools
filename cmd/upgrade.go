@@ -99,8 +99,14 @@ func (u *Upgrade) Execute() (status int) {
 }
 
 // v010 upgrades a Manifest spec v0.1.0 to the current Manifest spec version.
-func (u *Upgrade) v010(config medhash.Config) (errs []error) {
-	legacyPath := filepath.Join(config.Dir, "sums.txt")
+func (u *Upgrade) v010(genConfig medhash.Config) (errs []error) {
+	chkConfig := medhash.Config{
+		Dir: genConfig.Dir,
+
+		SHA256: true,
+	}
+
+	legacyPath := filepath.Join(genConfig.Dir, "sums.txt")
 
 	legacy, err := os.ReadFile(legacyPath)
 	if err != nil {
@@ -110,10 +116,12 @@ func (u *Upgrade) v010(config medhash.Config) (errs []error) {
 
 	legacyMan := strings.Split(string(legacy), "\n")
 
-	fmt.Printf("Checking legacy Manifest for %s\n", config.Dir)
+	fmt.Printf("Checking legacy Manifest for %s\n", genConfig.Dir)
 
 	chkErrs := make([]error, 0)
 	for i, med := range legacyMan {
+		cc := chkConfig
+
 		m := strings.Fields(med)
 
 		if len(m) < 1 {
@@ -131,7 +139,7 @@ func (u *Upgrade) v010(config medhash.Config) (errs []error) {
 			},
 		}
 
-		err = chkMedia(config.Dir, newMed)
+		err = chkMedia(cc, newMed)
 		if err != nil {
 			errs = append(errs, err)
 
@@ -144,8 +152,8 @@ func (u *Upgrade) v010(config medhash.Config) (errs []error) {
 		return
 	}
 
-	fmt.Printf("Generating MedHash for %s\n", config.Dir)
-	errs = append(errs, GenFunc(config, u.Ignores)...)
+	fmt.Printf("Generating MedHash for %s\n", genConfig.Dir)
+	errs = append(errs, GenFunc(genConfig, u.Ignores)...)
 
 	return
 }
@@ -198,8 +206,14 @@ func (u *Upgrade) upgradeJSON(config medhash.Config) (errs []error) {
 }
 
 // upgradeV020 upgrades a Manifest spec v0.2.0 to the current Manifest spec version.
-func (u *Upgrade) upgradeV020(config medhash.Config, legacy objx.Map) (errs []error) {
-	fmt.Printf("Checking legacy manifest for %s\n", config.Dir)
+func (u *Upgrade) upgradeV020(genConfig medhash.Config, legacy objx.Map) (errs []error) {
+	chkConfig := medhash.Config{
+		Dir: genConfig.Dir,
+
+		SHA256: true,
+	}
+
+	fmt.Printf("Checking legacy manifest for %s\n", genConfig.Dir)
 
 	if ver := legacy.Get("version").Str(); ver == "" || breakoutSemver(ver) != [3]int{0, 2, 0} {
 		errs = append(errs, fmt.Errorf("unexpected version: %v", legacy.Get("version").Data()))
@@ -209,14 +223,22 @@ func (u *Upgrade) upgradeV020(config medhash.Config, legacy objx.Map) (errs []er
 	media, e := mapToMedia(legacy.Get("media"))
 	errs = append(errs, e...)
 
-	errs = append(errs, chkMediaSlice(config.Dir, media)...)
+	errs = append(errs, chkMediaSlice(chkConfig, media)...)
 
 	return
 }
 
 // upgradeV030 upgrades a Manifest spec v0.3.0 to the current Manifest spec version.
-func (u *Upgrade) upgradeV030(config medhash.Config, legacy objx.Map) (errs []error) {
-	fmt.Printf("Checking legacy manifest for %s\n", config.Dir)
+func (u *Upgrade) upgradeV030(genConfig medhash.Config, legacy objx.Map) (errs []error) {
+	chkConfig := medhash.Config{
+		Dir: genConfig.Dir,
+
+		SHA256: true,
+		SHA1:   true,
+		MD5:    true,
+	}
+
+	fmt.Printf("Checking legacy manifest for %s\n", genConfig.Dir)
 
 	if ver := legacy.Get("version").Str(); ver == "" || breakoutSemver(ver) != [3]int{0, 3, 0} {
 		errs = append(errs, fmt.Errorf("unexpected version: %v", legacy.Get("version").Data()))
@@ -226,7 +248,7 @@ func (u *Upgrade) upgradeV030(config medhash.Config, legacy objx.Map) (errs []er
 	media, e := mapToMedia(legacy.Get("media"))
 	errs = append(errs, e...)
 
-	errs = append(errs, chkMediaSlice(config.Dir, media)...)
+	errs = append(errs, chkMediaSlice(chkConfig, media)...)
 
 	return
 }
@@ -236,7 +258,16 @@ func (u *Upgrade) upgradeV030(config medhash.Config, legacy objx.Map) (errs []er
 // With the Force flag enabled, this function regenerates a current Manifest with the config.
 // Otherwise, this function is a placeholder.
 // It does nothing.
-func (u *Upgrade) upgradeV040(config medhash.Config, legacy objx.Map) (errs []error) {
+func (u *Upgrade) upgradeV040(genConfig medhash.Config, legacy objx.Map) (errs []error) {
+	chkConfig := medhash.Config{
+		Dir: genConfig.Dir,
+
+		SHA3:   true,
+		SHA256: true,
+		SHA1:   true,
+		MD5:    true,
+	}
+
 	if ver := legacy.Get("version").Str(); ver == "" || breakoutSemver(ver) != [3]int{0, 4, 0} {
 		errs = append(errs, fmt.Errorf("unexpected version: %v", legacy.Get("version").Data()))
 		return
@@ -247,12 +278,12 @@ func (u *Upgrade) upgradeV040(config medhash.Config, legacy objx.Map) (errs []er
 		return
 	}
 
-	fmt.Printf("Forced to regenerate Manifest v0.4.0 for %s!\n", config.Dir)
+	fmt.Printf("Forced to regenerate Manifest v0.4.0 for %s!\n", genConfig.Dir)
 
 	media, e := mapToMedia(legacy.Get("media"))
 	errs = append(errs, e...)
 
-	errs = append(errs, chkMediaSlice(config.Dir, media)...)
+	errs = append(errs, chkMediaSlice(chkConfig, media)...)
 
 	return
 }
@@ -330,9 +361,9 @@ func mapToMedia(legacyMed *objx.Value) (media []medhash.Media, errs []error) {
 }
 
 // chkMediaSlice verifies the Hashes for all Media in the provided slice.
-func chkMediaSlice(dir string, media []medhash.Media) (errs []error) {
+func chkMediaSlice(config medhash.Config, media []medhash.Media) (errs []error) {
 	for _, med := range media {
-		err := chkMedia(dir, med)
+		err := chkMedia(config, med)
 		if err != nil {
 			errs = append(errs, err)
 
@@ -344,17 +375,17 @@ func chkMediaSlice(dir string, media []medhash.Media) (errs []error) {
 }
 
 // chkMedia verifies Hashes for the Media.
-func chkMedia(dir string, media medhash.Media) (err error) {
-	fmt.Printf("  %s: ", filepath.Join(dir, media.Path))
+func chkMedia(config medhash.Config, media medhash.Media) (err error) {
+	fmt.Printf("  %s: ", filepath.Join(config.Dir, media.Path))
 
-	valid, err := medhash.ChkHash(dir, media)
+	valid, err := medhash.ChkHash(config, media)
 	if err != nil {
 		fmt.Println("ERROR")
 
 		return
 	} else if !valid {
 		fmt.Println("ERROR")
-		err = fmt.Errorf("invalid hash for %s", filepath.Join(dir, media.Path))
+		err = fmt.Errorf("invalid hash for %s", filepath.Join(config.Dir, media.Path))
 
 		return
 	}
