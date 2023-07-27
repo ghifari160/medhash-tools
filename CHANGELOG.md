@@ -15,12 +15,14 @@ This project attempts to adhere to [Semantic Versioning](https://semver.org/spec
 - Added `--force` parameter to `upgrade`.
 - Added preset parameters to `gen`, `chk`, and `upgrade`.
   `gen` and `upgrade` will generate hashes using the preset.
-  `chk` will only verify hashes in the preset.
+  `chk` will only attempt to verify hashes in the preset.
+  Non-existent hashes are ignored.
   - Added `--default` preset parameter.
   - Added `--all` preset parameter.
 - Added hash algorithm parameters to `gen`, `chk`, and `upgrade`.
   `gen` and `upgrade` will only generate hashes using the specified algorithm.
-  `chk` will only verify hashes of the specified algorith.
+  `chk` will only verify hashes of the specified algorithm.
+  Non-existent hashes are ignored.
   - Added `--sha3` parameter.
   - Added `--sha256` parameter.
   - Added `--sha1` parameter.

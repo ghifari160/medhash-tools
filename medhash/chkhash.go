@@ -1,6 +1,8 @@
 package medhash
 
-import "path/filepath"
+import (
+	"path/filepath"
+)
 
 // ChkHash verifies the hash for the media.
 // Hashes for the media are verified at the same time.
@@ -12,6 +14,22 @@ func ChkHash(config Config, med Media) (valid bool, err error) {
 	m, err := genHash(config)
 	if err != nil {
 		return
+	}
+
+	if med.Hash.SHA3_256 == "" {
+		config.SHA3 = false
+	}
+
+	if med.Hash.SHA256 == "" {
+		config.SHA256 = false
+	}
+
+	if med.Hash.SHA1 == "" {
+		config.SHA1 = false
+	}
+
+	if med.Hash.MD5 == "" {
+		config.MD5 = false
 	}
 
 	if config.SHA3 {
