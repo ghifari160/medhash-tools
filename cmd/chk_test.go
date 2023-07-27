@@ -25,6 +25,8 @@ func (s *CmdSuite) TestChk() {
 
 		c := new(cmd.Chk)
 		c.Dirs = []string{dir}
+		c.Default = true
+		c.SHA3 = true
 
 		status := c.Execute()
 		s.Require().Zero(status)
@@ -47,6 +49,8 @@ func (s *CmdSuite) TestChk() {
 
 		c := new(cmd.Chk)
 		c.Dirs = []string{dir}
+		c.Default = true
+		c.SHA256 = true
 
 		status := c.Execute()
 		s.Require().Zero(status)
@@ -69,6 +73,8 @@ func (s *CmdSuite) TestChk() {
 
 		c := new(cmd.Chk)
 		c.Dirs = []string{dir}
+		c.Default = true
+		c.SHA1 = true
 
 		status := c.Execute()
 		s.Require().Zero(status)
@@ -91,6 +97,8 @@ func (s *CmdSuite) TestChk() {
 
 		c := new(cmd.Chk)
 		c.Dirs = []string{dir}
+		c.Default = true
+		c.MD5 = true
 
 		status := c.Execute()
 		s.Require().Zero(status)
@@ -112,6 +120,8 @@ func (s *CmdSuite) TestChk() {
 
 		c := new(cmd.Chk)
 		c.Dirs = []string{dir}
+		c.Default = true
+		c.All = true
 
 		status := c.Execute()
 		s.Require().Zero(status)
@@ -129,6 +139,7 @@ func (s *CmdSuite) TestChk() {
 
 		c := new(cmd.Chk)
 		c.Dirs = []string{dir}
+		c.Default = true
 
 		status := c.Execute()
 		s.Require().Zero(status)
@@ -149,6 +160,7 @@ func (s *CmdSuite) TestChk() {
 
 		c := new(cmd.Chk)
 		c.Dirs = []string{dir}
+		c.Default = true
 		c.Manifest = filepath.Join(dir, "manifest.json")
 
 		status := c.Execute()

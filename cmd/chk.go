@@ -11,12 +11,28 @@ import (
 
 // Chk subcommand verifies the directories specified in Dirs and for the files specified in Files.
 type Chk struct {
-	Dirs     []string `arg:"positional"`
-	Files    []string `arg:"--file,-f,separate" help:"check only these files"`
-	Manifest string   `arg:"--manifest,-m" help:"use this manifest"`
+	Dirs  []string `arg:"positional"`
+	Files []string `arg:"--file,-f,separate" help:"check only these files"`
+
+	Manifest string `arg:"--manifest,-m" help:"use this manifest"`
+
+	CmdConfig
 }
 
 func (c *Chk) Execute() (status int) {
+	var config medhash.Config
+
+	if c.All {
+		config = medhash.AllConfig
+	} else if c.SHA3 || c.SHA256 || c.SHA1 || c.MD5 {
+		config.SHA3 = c.SHA3
+		config.SHA256 = c.SHA256
+		config.SHA1 = c.SHA1
+		config.MD5 = c.MD5
+	} else if c.Default {
+		config = medhash.DefaultConfig
+	}
+
 	if len(c.Dirs) < 1 {
 		cwd, err := os.Getwd()
 		if err != nil {
@@ -30,6 +46,9 @@ func (c *Chk) Execute() (status int) {
 	}
 
 	for _, dir := range c.Dirs {
+		conf := config
+		conf.Dir = dir
+
 		var manPath string
 
 		if len(c.Manifest) > 0 {
@@ -40,7 +59,7 @@ func (c *Chk) Execute() (status int) {
 
 		fmt.Printf("Checking MedHash for %s\n", dir)
 
-		errs := c.chk(manPath, dir, c.Files)
+		errs := c.chk(manPath, conf, c.Files)
 		if errs != nil {
 			fmt.Println("Error!")
 			status = 1
@@ -56,7 +75,7 @@ func (c *Chk) Execute() (status int) {
 	return
 }
 
-func (c *Chk) chk(manPath, dir string, files []string) (errs []error) {
+func (c *Chk) chk(manPath string, config medhash.Config, files []string) (errs []error) {
 	manFile, err := os.ReadFile(manPath)
 	if err != nil {
 		errs = append(errs, err)
@@ -72,7 +91,7 @@ func (c *Chk) chk(manPath, dir string, files []string) (errs []error) {
 	}
 
 	for _, med := range manifest.Media {
-		fmt.Printf("  %s: ", filepath.Join(dir, med.Path))
+		fmt.Printf("  %s: ", filepath.Join(config.Dir, med.Path))
 
 		if len(files) > 0 {
 			skipped := true
@@ -98,7 +117,7 @@ func (c *Chk) chk(manPath, dir string, files []string) (errs []error) {
 			}
 		}
 
-		valid, err := medhash.ChkHash(dir, med)
+		valid, err := medhash.ChkHash(config, med)
 		if err == nil && valid {
 			fmt.Println("OK")
 			continue
@@ -106,7 +125,7 @@ func (c *Chk) chk(manPath, dir string, files []string) (errs []error) {
 			fmt.Println("ERROR")
 
 			if err == nil {
-				err = fmt.Errorf("invalid hash for %s", filepath.Join(dir, med.Path))
+				err = fmt.Errorf("invalid hash for %s", filepath.Join(config.Dir, med.Path))
 			}
 
 			errs = append(errs, err)

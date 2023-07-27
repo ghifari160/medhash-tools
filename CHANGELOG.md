@@ -13,12 +13,18 @@ This project attempts to adhere to [Semantic Versioning](https://semver.org/spec
   Pass each target directory as positional arguments to each tool.
 - Added `--ignore` parameter to `gen` and `upgrade`.
 - Added `--force` parameter to `upgrade`.
-- Added `--default` preset parameter to `gen` and `upgrade`.
-- Added `--all` preset parameter to `gen` and `upgrade`.
-- Added `--sha3` parameter to `gen` and `upgrade`.
-- Added `--sha256` parameter to `gen` and `upgrade`.
-- Added `--sha1` parameter to `gen` and `upgrade`.
-- Added `--md5` parameter to `gen` and `upgrade`.
+- Added preset parameters to `gen`, `chk`, and `upgrade`.
+  `gen` and `upgrade` will generate hashes using the preset.
+  `chk` will only verify hashes in the preset.
+  - Added `--default` preset parameter.
+  - Added `--all` preset parameter.
+- Added hash algorithm parameters to `gen`, `chk`, and `upgrade`.
+  `gen` and `upgrade` will only generate hashes using the specified algorithm.
+  `chk` will only verify hashes of the specified algorith.
+  - Added `--sha3` parameter.
+  - Added `--sha256` parameter.
+  - Added `--sha1` parameter.
+  - Added `--md5` parameter.
 - Added `version` command.
 
 ### Changed
