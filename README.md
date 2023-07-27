@@ -9,7 +9,11 @@ This project is undergoing a rewrite.
 This project was repurposed from a prototype.
 Rewriting this project meant that it could be designed in a more logical way.
 
-Code from before the rewrite are available under the `main` branch.
+Code from before the rewrite are available under the
+[legacy](https://github.com/Ghifari160/medhash-tools/tree/legacy) branch.
+
+All legacy code will be removed from the main branch after the release of v0.6.0.
+The legacy branch will be removed after the release of v1.0.0.
 
 ### Performance comparison
 
