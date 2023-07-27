@@ -14,6 +14,8 @@ import (
 
 type MedHashTestSuite struct {
 	suite.Suite
+
+	PayloadSize int64
 }
 
 func (m *MedHashTestSuite) GenPayload(t testing.TB, dir string, size int64) (payload string) {
@@ -52,5 +54,13 @@ func (s *MedHashTestSuite) TestNew() {
 }
 
 func TestMedHash(t *testing.T) {
-	suite.Run(t, new(MedHashTestSuite))
+	s := new(MedHashTestSuite)
+
+	if testing.Short() {
+		s.PayloadSize = 1024
+	} else {
+		s.PayloadSize = 1 * 1024 * 1024 * 1024
+	}
+
+	suite.Run(t, s)
 }

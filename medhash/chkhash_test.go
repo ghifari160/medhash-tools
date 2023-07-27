@@ -13,7 +13,7 @@ import (
 func (s *MedHashTestSuite) TestChkHash() {
 	dir := s.T().TempDir()
 
-	payload := s.GenPayload(s.T(), dir, 1*1024*1024*1024)
+	payload := s.GenPayload(s.T(), dir, s.PayloadSize)
 
 	config := medhash.Config{
 		Dir:  dir,

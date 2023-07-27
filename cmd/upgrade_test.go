@@ -11,7 +11,7 @@ import (
 
 func (s *CmdSuite) TestUpgrade() {
 	dir := s.T().TempDir()
-	payload := testcommon.GenPayload(s.T(), dir, 1*1024*1024*1024)
+	payload := testcommon.GenPayload(s.T(), dir, s.PayloadSize)
 
 	s.Run("v0.1.0", func() {
 		testcommon.CreateLegacyManifest(s.T(), dir, payload)

@@ -12,7 +12,7 @@ import (
 
 func (s *CmdSuite) TestChk() {
 	dir := s.T().TempDir()
-	payload := testcommon.GenPayload(s.T(), dir, 1*1024*1024*1024)
+	payload := testcommon.GenPayload(s.T(), dir, s.PayloadSize)
 
 	s.Run("sha3", func() {
 		testcommon.CreateManifest(s.T(), dir, payload, medhash.ManifestFormatVer, medhash.Config{

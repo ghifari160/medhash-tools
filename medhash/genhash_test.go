@@ -5,7 +5,7 @@ import "github.com/ghifari160/medhash-tools/medhash"
 func (s *MedHashTestSuite) TestGenHash() {
 	dir := s.T().TempDir()
 
-	payload := s.GenPayload(s.T(), dir, 1*1024*1024*1024)
+	payload := s.GenPayload(s.T(), dir, s.PayloadSize)
 
 	s.Run("sha3", func() {
 		conf := medhash.Config{

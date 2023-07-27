@@ -11,7 +11,7 @@ import (
 
 func (s *CmdSuite) TestGen() {
 	dir := s.T().TempDir()
-	payload := testcommon.GenPayload(s.T(), dir, 1*1024*1024*1024)
+	payload := testcommon.GenPayload(s.T(), dir, s.PayloadSize)
 
 	s.Run("sha3", func() {
 		s.T().Cleanup(func() {
