@@ -2,6 +2,7 @@
 // Copyright (c) 2021 GHIFARI160
 // MIT License
 
+// Deprecated: legacy code.
 package common
 
 import (
@@ -9,10 +10,12 @@ import (
 	"os"
 )
 
+// Deprecated: legacy code.
 func IsColorTerm() bool {
 	return os.Getenv("TERM") != ""
 }
 
+// Deprecated: legacy code.
 func ColorPrintln(asciiCode string, a ...interface{}) {
 	if IsColorTerm() {
 		fmt.Print(asciiCode)

@@ -2,6 +2,17 @@
 
 Simple tools for verifying media file integrity.
 
+## Legacy code disclaimer
+
+The code contained within this branch is considered legacy code.
+They are deprecated.
+
+The up-to-date code is available from the
+[main](https://github.com/Ghifari160/medhash-tools/tree/main) branch.
+
+All legacy code will be removed from the main branch after the release of v0.6.0.
+This branch will be removed after the release of v1.0.0.
+
 ## Usage
 
 Generating medhash

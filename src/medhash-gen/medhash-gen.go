@@ -2,6 +2,7 @@
 // Copyright (c) 2021 GHIFARI160
 // MIT License
 
+// Deprecated: legacy code.
 package main
 
 import (
@@ -20,6 +21,7 @@ const NAME string = "medhash-gen"
 
 const DEFAULT_FLAGMANIFEST string = "__TARGET__"
 
+// Deprecated: legacy code.
 func main() {
 	targetDir := "."
 

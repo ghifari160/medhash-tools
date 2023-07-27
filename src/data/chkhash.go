@@ -1,6 +1,9 @@
+// Deprecated: legacy code.
 package data
 
 // ChkHash hash checker
+//
+// Deprecated: legacy code.
 func ChkHash(path string, hash Hash) bool {
 	h, err := GenHash(path)
 

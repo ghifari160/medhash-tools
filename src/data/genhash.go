@@ -11,6 +11,7 @@ import (
 	"os"
 )
 
+// Deprecated: legacy code.
 func bufferedGenHash(path string, hasher *hash.Hash) error {
 	file, err := os.Open(path)
 
@@ -30,6 +31,8 @@ func bufferedGenHash(path string, hasher *hash.Hash) error {
 }
 
 // GenHash hash generator
+//
+// Deprecated: legacy code.
 func GenHash(path string) (Hash, error) {
 	hash := Hash{}
 

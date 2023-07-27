@@ -20,6 +20,7 @@ import (
 
 const DEFAULT_BUFFERSIZE int = 4096
 
+// Deprecated: legacy code.
 func bufferedGenHash(path string, hasher *hash.Hash, bufferSize int) error {
 	f, err := os.Open(path)
 	if err != nil {
@@ -36,6 +37,7 @@ func bufferedGenHash(path string, hasher *hash.Hash, bufferSize int) error {
 	return f.Close()
 }
 
+// Deprecated: legacy code.
 func GenHash(path string) (*Media, error) {
 	var err error
 

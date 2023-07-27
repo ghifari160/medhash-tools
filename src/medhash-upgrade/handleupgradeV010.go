@@ -12,6 +12,7 @@ import (
 	"github.com/ghifari160/medhash-tools/src/packageinfo"
 )
 
+// Deprecated: legacy code.
 func handleUpgradeV010(root string) error {
 	legacyMedhashFile, err := ioutil.ReadFile(root + "/sums.txt")
 

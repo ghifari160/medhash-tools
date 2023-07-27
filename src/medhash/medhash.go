@@ -11,21 +11,25 @@ const MEDHASH_FORMAT_VERSION_CURRENT = "0.4.0"
 const MEDHASH_MANIFEST_NAME = "medhash.json"
 const MEDHASH_ERROR_PREFIX = "medhash:"
 
+// Deprecated: legacy code.
 type MedHash struct {
 	Version   string  `json:"version"`
 	Generator string  `json:"generator,omitempty"`
 	Media     []Media `json:"media"`
 }
 
+// Deprecated: legacy code.
 func New() *MedHash {
 	return &MedHash{Version: MEDHASH_FORMAT_VERSION_CURRENT}
 }
 
+// Deprecated: legacy code.
 type Media struct {
 	Path string `json:"path"`
 	Hash *Hash  `json:"hash"`
 }
 
+// Deprecated: legacy code.
 type Hash struct {
 	SHA256   string `json:"sha256"`
 	SHA3_256 string `json:"sha3-256"`
@@ -33,6 +37,7 @@ type Hash struct {
 	MD5      string `json:"md5"`
 }
 
+// Deprecated: legacy code.
 func fmtError(err error) error {
 	if err != nil {
 		errMsg := MEDHASH_ERROR_PREFIX + " " + err.Error()

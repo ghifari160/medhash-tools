@@ -10,6 +10,7 @@ import (
 	"github.com/ghifari160/medhash-tools/src/data"
 )
 
+// Deprecated: legacy code.
 func handleUpgradeV020(root string) error {
 	medhashLegacyFile, err := ioutil.ReadFile(root + "/medhash.json")
 
