@@ -6,6 +6,7 @@ package common
 
 import "fmt"
 
+// Deprecated: legacy code.
 func PrintHeader(toolName string) {
 	fmt.Printf("%s v%s\n", NAME, VERSION)
 	fmt.Printf("%s\n", toolName)

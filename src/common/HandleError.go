@@ -9,6 +9,7 @@ import (
 	"os"
 )
 
+// Deprecated: legacy code.
 func HandleError(err error, exitCode int) {
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)

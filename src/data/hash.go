@@ -1,6 +1,8 @@
 package data
 
 // Hash object definition
+
+// Deprecated: legacy code.
 type Hash struct {
 	SHA256 string `json:"sha256"`
 	SHA1   string `json:"sha1"`

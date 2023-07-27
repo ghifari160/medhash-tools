@@ -1,3 +1,4 @@
+// Deprecated: legacy code.
 package main
 
 import (
@@ -10,6 +11,7 @@ import (
 	"github.com/ghifari160/medhash-tools/src/packageinfo"
 )
 
+// Deprecated: legacy code.
 func main() {
 	root := "."
 

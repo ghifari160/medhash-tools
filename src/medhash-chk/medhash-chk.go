@@ -2,6 +2,7 @@
 // Copyright (c) 2021 GHIFARI160
 // MIT License
 
+// Deprecated: legacy code.
 package main
 
 import (
@@ -22,6 +23,7 @@ const NAME string = "medhash-chk"
 const DEFAULT_FLAGFILE string = "__FILE__"
 const DEFAULT_FLAGMANIFEST string = "__TARGET__"
 
+// Deprecated: legacy code.
 func main() {
 	targetDir := "."
 

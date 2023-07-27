@@ -1,3 +1,4 @@
+// Deprecated: legacy code.
 package packageinfo
 
 // Name translated from package.name
