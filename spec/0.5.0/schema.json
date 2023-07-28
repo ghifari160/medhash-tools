@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "generator": {
+      "type": "string"
+    },
+    "media": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "hash": {
+            "type": "object",
+            "properties": {
+              "xxh3": {
+                "type": "string"
+              },
+              "sha256": {
+                "type": "string"
+              },
+              "sha3": {
+                "type": "string"
+              },
+              "sha3-256": {
+                "type": "string",
+                "deprecated": true
+              },
+              "sha1": {
+                "type": "string"
+              },
+              "md5": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": [
+          "path",
+          "hash"
+        ]
+      }
+    }
+  },
+  "required": [
+    "version",
+    "media"
+  ]
+}
