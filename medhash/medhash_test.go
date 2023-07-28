@@ -31,10 +31,7 @@ func (s *MedHashTestSuite) TestNew() {
 		})
 
 		s.NotNil(manifest)
-		s.True(manifest.Config.SHA3)
-		s.True(manifest.Config.SHA256)
-		s.True(manifest.Config.SHA1)
-		s.True(manifest.Config.MD5)
+		s.True(manifest.Config.XXH3)
 	})
 
 	s.Run("newWithConfig", func() {

@@ -5,12 +5,10 @@ const DefaultManifestName = "medhash.json"
 
 var (
 	DefaultConfig = Config{
-		SHA3:   true,
-		SHA256: true,
-		SHA1:   true,
-		MD5:    true,
+		XXH3: true,
 	}
 	AllConfig = Config{
+		XXH3:   true,
 		SHA3:   true,
 		SHA256: true,
 		SHA1:   true,
@@ -35,12 +33,7 @@ type Manifest struct {
 
 // New creates a new Manifest with the default configuration.
 func New() *Manifest {
-	return NewWithConfig(Config{
-		SHA3:   true,
-		SHA256: true,
-		SHA1:   true,
-		MD5:    true,
-	})
+	return NewWithConfig(DefaultConfig)
 }
 
 // NewWithConfig creates a new Manifest with the specific configuration.
