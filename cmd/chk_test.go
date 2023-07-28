@@ -14,6 +14,30 @@ func (s *CmdSuite) TestChk() {
 	dir := s.T().TempDir()
 	payload := testcommon.GenPayload(s.T(), dir, s.PayloadSize)
 
+	s.Run("xxh3", func() {
+		testcommon.CreateManifest(s.T(), dir, payload, medhash.ManifestFormatVer, medhash.Config{
+			XXH3: true,
+		})
+		s.T().Cleanup(func() {
+			err := os.Remove(filepath.Join(dir, medhash.DefaultManifestName))
+			s.Require().NoError(err)
+		})
+
+		c := new(cmd.Chk)
+		c.Dirs = []string{dir}
+		c.Default = true
+		c.XXH3 = true
+
+		status := c.Execute()
+		s.Require().Zero(status)
+
+		config := medhash.Config{
+			XXH3: true,
+		}
+
+		testcommon.VerifyManifest(s.T(), dir, config, payload.Hash)
+	})
+
 	s.Run("sha3", func() {
 		testcommon.CreateManifest(s.T(), dir, payload, medhash.ManifestFormatVer, medhash.Config{
 			SHA3: true,

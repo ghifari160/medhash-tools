@@ -15,6 +15,7 @@ type CmdConfig struct {
 	Default bool `arg:"--default,-d" default:"true" help:"use default preset"`
 	All     bool `arg:"--all,-a" help:"use all algorithms"`
 
+	XXH3   bool `arg:"--xxh3" help:"use XXH3"`
 	SHA3   bool `arg:"--sha3" help:"use SHA3-256"`
 	SHA256 bool `arg:"--sha256" help:"use SHA256"`
 	SHA1   bool `arg:"--sha1" help:"use SHA1"`

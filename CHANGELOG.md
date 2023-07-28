@@ -23,6 +23,7 @@ This project attempts to adhere to [Semantic Versioning](https://semver.org/spec
   `gen` and `upgrade` will only generate hashes using the specified algorithm.
   `chk` will only verify hashes of the specified algorithm.
   Non-existent hashes are ignored.
+  - Added `--xxh3` parameter.
   - Added `--sha3` parameter.
   - Added `--sha256` parameter.
   - Added `--sha1` parameter.
@@ -34,8 +35,16 @@ This project attempts to adhere to [Semantic Versioning](https://semver.org/spec
 - `medhash-*` commands are now subcommands.
   Pass them as the first parameter to `medhash`.
   For example, `medhash-gen` is now `medhash gen`.
+- Default preset now only generates [XXH3_64](https://xxhash.com) hash.
+  For cryptographic use, specify the appropriate algorithm or use `--all`.
 
 ### Deprecated
+
+- Manifest field `media.hash.sha3-256` is now deprecated.
+  Use `media.hash.sha3` instead.
+  For compatibility, MedHash Tools populate SHA3 hashes into both fields.
+  `chk` prefers `media.hash.sha3` to `media.hash.sha3-256`, meaning that it will attempt to verify
+  the former before attempting to verify the latter.
 
 ### Removed
 

@@ -23,7 +23,8 @@ func (g *Gen) Execute() (status int) {
 
 	if g.All {
 		config = medhash.AllConfig
-	} else if g.SHA3 || g.SHA256 || g.SHA1 || g.MD5 {
+	} else if g.XXH3 || g.SHA3 || g.SHA256 || g.SHA1 || g.MD5 {
+		config.XXH3 = g.XXH3
 		config.SHA3 = g.SHA3
 		config.SHA256 = g.SHA256
 		config.SHA1 = g.SHA1
