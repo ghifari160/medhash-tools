@@ -1,7 +1,3 @@
-// MedHash Tools
-// Copyright (c) 2023 GHIFARI160
-// MIT License
-
 package medhash
 
 const ManifestFormatVer = "0.5.0"
@@ -65,11 +61,8 @@ type Media struct {
 type Hash struct {
 	SHA256   string `json:"sha256,omitempty"`
 	SHA3_256 string `json:"sha3-256,omitempty"`
-
-	// Deprecated: SHA1 support is deprecated in spec v0.4.0.
-	SHA1 string `json:"sha1,omitempty"`
-	// Deprecated: MD5 support is deprecated in spec v0.4.0.
-	MD5 string `json:"md5,omitempty"`
+	SHA1     string `json:"sha1,omitempty"`
+	MD5      string `json:"md5,omitempty"`
 }
 
 // Config configures the hasher.
@@ -84,9 +77,7 @@ type Config struct {
 	// SHA256 toggles the SHA256 hash generation.
 	SHA256 bool
 	// SHA1 toggles the SHA1 hash generation.
-	// Deprecated: SHA1 support is deprecated in spec v0.4.0.
 	SHA1 bool
 	// MD5 toggles the MD5 hash generation.
-	// Deprecated: MD5 support is deprecated in spec v0.4.0.
 	MD5 bool
 }
