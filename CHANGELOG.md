@@ -35,6 +35,9 @@ This project attempts to adhere to [Semantic Versioning](https://semver.org/spec
 - `medhash-*` commands are now subcommands.
   Pass them as the first parameter to `medhash`.
   For example, `medhash-gen` is now `medhash gen`.
+- Updated MedHash Manifest Specification to v0.5.0.
+  `upgrade` now upgrades Manifest v0.4.0 without `--force`.
+  Manifest v0.5.0 can be regenerated with `--force`.
 - Default preset now only generates [XXH3_64](https://xxhash.com) hash.
   For cryptographic use, specify the appropriate algorithm or use `--all`.
 

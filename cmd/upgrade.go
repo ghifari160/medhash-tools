@@ -27,7 +27,8 @@ func (u *Upgrade) Execute() (status int) {
 
 	if u.All {
 		config = medhash.AllConfig
-	} else if u.SHA3 || u.SHA256 || u.SHA1 || u.MD5 {
+	} else if u.XXH3 || u.SHA3 || u.SHA256 || u.SHA1 || u.MD5 {
+		config.XXH3 = u.XXH3
 		config.SHA3 = u.SHA3
 		config.SHA256 = u.SHA256
 		config.SHA1 = u.SHA1
@@ -189,6 +190,10 @@ func (u *Upgrade) upgradeJSON(config medhash.Config) (errs []error) {
 		fmt.Println("Manifest v0.4.0 detected!")
 		errs = append(errs, u.upgradeV040(config, legacy)...)
 
+	case [3]int{0, 5, 0}:
+		fmt.Println("Manifest v0.5.0 detected!")
+		errs = append(errs, u.upgradeV050(config, legacy)...)
+
 	default:
 		errs = append(errs, fmt.Errorf("unexpected version: %v", legacy.Get("version").Data()))
 		return
@@ -254,31 +259,43 @@ func (u *Upgrade) upgradeV030(genConfig medhash.Config, legacy objx.Map) (errs [
 }
 
 // upgradeV040 upgrades a Manifest spec v0.4.0 to the current Manifest spec version.
-//
-// With the Force flag enabled, this function regenerates a current Manifest with the config.
-// Otherwise, this function is a placeholder.
-// It does nothing.
 func (u *Upgrade) upgradeV040(genConfig medhash.Config, legacy objx.Map) (errs []error) {
-	chkConfig := medhash.Config{
-		Dir: genConfig.Dir,
-
-		SHA3:   true,
-		SHA256: true,
-		SHA1:   true,
-		MD5:    true,
-	}
+	chkConfig := medhash.AllConfig
+	chkConfig.Dir = genConfig.Dir
 
 	if ver := legacy.Get("version").Str(); ver == "" || breakoutSemver(ver) != [3]int{0, 4, 0} {
 		errs = append(errs, fmt.Errorf("unexpected version: %v", legacy.Get("version").Data()))
 		return
 	}
 
-	if !u.Force {
-		errs = append(errs, fmt.Errorf("manifest v0.4.0 is the current spec"))
+	media, e := mapToMedia(legacy.Get("media"))
+	errs = append(errs, e...)
+
+	errs = append(errs, chkMediaSlice(chkConfig, media)...)
+
+	return
+}
+
+// upgradeV050 upgrades a Manifest spec v0.5.0 to the current Manifest spec version.
+//
+// With the Force flag enabled, this function regenerates a current Manifest with the config.
+// Otherwise, this function is a placeholder.
+// It does nothing.
+func (u *Upgrade) upgradeV050(genConfig medhash.Config, legacy objx.Map) (errs []error) {
+	chkConfig := medhash.AllConfig
+	chkConfig.Dir = genConfig.Dir
+
+	if ver := legacy.Get("version").Str(); ver == "" || breakoutSemver(ver) != [3]int{0, 5, 0} {
+		errs = append(errs, fmt.Errorf("unexpected version: %v", legacy.Get("version").Data()))
 		return
 	}
 
-	fmt.Printf("Forced to regenerate Manifest v0.4.0 for %s!\n", genConfig.Dir)
+	if !u.Force {
+		errs = append(errs, fmt.Errorf("manifest v0.5.0 is the current spec"))
+		return
+	}
+
+	fmt.Printf("Forced to regenerate Manifest v0.5.0 for %s!\n", genConfig.Dir)
 
 	media, e := mapToMedia(legacy.Get("media"))
 	errs = append(errs, e...)

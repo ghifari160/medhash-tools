@@ -78,8 +78,30 @@ func (s *CmdSuite) TestUpgrade() {
 	})
 
 	s.Run("v0.4.0", func() {
+		testcommon.CreateManifest(s.T(), dir, payload, "0.4.0", medhash.Config{
+			SHA3:   true,
+			SHA256: true,
+			SHA1:   true,
+			MD5:    true,
+		})
+		s.T().Cleanup(func() {
+			err := os.Remove(filepath.Join(dir, medhash.DefaultManifestName))
+			s.Require().NoError(err)
+		})
+
+		c := new(cmd.Upgrade)
+		c.Default = true
+		c.Dirs = []string{dir}
+
+		status := c.Execute()
+		s.Require().Zero(status)
+
+		testcommon.VerifyManifest(s.T(), dir, medhash.DefaultConfig, payload.Hash)
+	})
+
+	s.Run("v0.5.0", func() {
 		s.Run("not_forced", func() {
-			testcommon.CreateManifest(s.T(), dir, payload, "0.4.0", medhash.DefaultConfig)
+			testcommon.CreateManifest(s.T(), dir, payload, "0.5.0", medhash.DefaultConfig)
 			s.T().Cleanup(func() {
 				err := os.Remove(filepath.Join(dir, medhash.DefaultManifestName))
 				s.Require().NoError(err)
@@ -94,7 +116,7 @@ func (s *CmdSuite) TestUpgrade() {
 		})
 
 		s.Run("forced", func() {
-			testcommon.CreateManifest(s.T(), dir, payload, "0.4.0", medhash.DefaultConfig)
+			testcommon.CreateManifest(s.T(), dir, payload, "0.5.0", medhash.DefaultConfig)
 			s.T().Cleanup(func() {
 				err := os.Remove(filepath.Join(dir, medhash.DefaultManifestName))
 				s.Require().NoError(err)
