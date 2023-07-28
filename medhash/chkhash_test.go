@@ -20,6 +20,20 @@ func (s *MedHashTestSuite) TestChkHash() {
 		Path: payload,
 	}
 
+	s.Run("xxh3", func() {
+		config := config
+		config.XXH3 = true
+
+		med := genManifest(s.T(), config)
+
+		config.Dir = dir
+
+		valid, err := medhash.ChkHash(config, med)
+		s.Require().NoError(err)
+
+		s.True(valid)
+	})
+
 	s.Run("sha3", func() {
 		config := config
 		config.SHA3 = true

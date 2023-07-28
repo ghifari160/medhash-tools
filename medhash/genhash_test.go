@@ -7,6 +7,19 @@ func (s *MedHashTestSuite) TestGenHash() {
 
 	payload := s.GenPayload(s.T(), dir, s.PayloadSize)
 
+	s.Run("xxh3", func() {
+		conf := medhash.Config{
+			Dir:  dir,
+			Path: payload,
+			XXH3: true,
+		}
+
+		m, err := medhash.GenHash(conf)
+		s.Require().NoError(err)
+
+		s.NotEmpty(m.Hash.XXH3)
+	})
+
 	s.Run("sha3", func() {
 		conf := medhash.Config{
 			Dir:  dir,

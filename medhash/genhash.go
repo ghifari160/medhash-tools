@@ -1,7 +1,3 @@
-// MedHash Tools
-// Copyright (c) 2023 GHIFARI160
-// MIT License
-
 package medhash
 
 import (
@@ -14,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/zeebo/xxh3"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -27,6 +24,11 @@ func GenHash(config Config) (med Media, err error) {
 func genHash(config Config) (med Media, err error) {
 	writers := make([]io.Writer, 0)
 	hashers := make(map[string]hash.Hash)
+
+	if config.XXH3 {
+		hashers["xxh3"] = xxh3.New()
+		writers = append(writers, hashers["xxh3"])
+	}
 
 	if config.SHA3 {
 		hashers["sha3"] = sha3.New256()
@@ -62,6 +64,10 @@ func genHash(config Config) (med Media, err error) {
 	}
 
 	hash := Hash{}
+
+	if h := hashers["xxh3"]; h != nil {
+		hash.XXH3 = hex.EncodeToString(h.Sum(nil))
+	}
 
 	if h := hashers["sha3"]; h != nil {
 		hash.SHA3_256 = hex.EncodeToString(h.Sum(nil))

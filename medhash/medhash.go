@@ -59,6 +59,7 @@ type Media struct {
 
 // Hash stores each hash of a Media.
 type Hash struct {
+	XXH3     string `json:"xxh3,omitempty"`
 	SHA256   string `json:"sha256,omitempty"`
 	SHA3_256 string `json:"sha3-256,omitempty"`
 	SHA1     string `json:"sha1,omitempty"`
@@ -72,6 +73,8 @@ type Config struct {
 	// Path is the path of the current media.
 	Path string
 
+	// XXH3 toggles the XXH3_64 hash generation.
+	XXH3 bool
 	// SHA3 toggles the SHA3-256 hash generation.
 	SHA3 bool
 	// SHA256 toggles the SHA256 hash generation.

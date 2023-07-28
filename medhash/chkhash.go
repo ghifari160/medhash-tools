@@ -16,6 +16,10 @@ func ChkHash(config Config, med Media) (valid bool, err error) {
 		return
 	}
 
+	if med.Hash.XXH3 == "" {
+		config.XXH3 = false
+	}
+
 	if med.Hash.SHA3_256 == "" {
 		config.SHA3 = false
 	}
@@ -30,6 +34,13 @@ func ChkHash(config Config, med Media) (valid bool, err error) {
 
 	if med.Hash.MD5 == "" {
 		config.MD5 = false
+	}
+
+	if config.XXH3 {
+		if med.Hash.XXH3 != m.Hash.XXH3 {
+			valid = false
+			return
+		}
 	}
 
 	if config.SHA3 {
