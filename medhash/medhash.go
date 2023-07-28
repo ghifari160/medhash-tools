@@ -4,7 +4,7 @@
 
 package medhash
 
-const ManifestFormatVer = "0.4.0"
+const ManifestFormatVer = "0.5.0"
 const DefaultManifestName = "medhash.json"
 
 var (
@@ -15,6 +15,12 @@ var (
 		MD5:    true,
 	}
 	AllConfig = Config{
+		SHA3:   true,
+		SHA256: true,
+		SHA1:   true,
+		MD5:    true,
+	}
+	LegacyConfig = Config{
 		SHA3:   true,
 		SHA256: true,
 		SHA1:   true,
