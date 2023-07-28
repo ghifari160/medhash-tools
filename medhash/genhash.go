@@ -70,6 +70,7 @@ func genHash(config Config) (med Media, err error) {
 	}
 
 	if h := hashers["sha3"]; h != nil {
+		hash.SHA3 = hex.EncodeToString(h.Sum(nil))
 		hash.SHA3_256 = hex.EncodeToString(h.Sum(nil))
 	}
 

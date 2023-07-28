@@ -48,6 +48,20 @@ func (s *MedHashTestSuite) TestChkHash() {
 		s.True(valid)
 	})
 
+	s.Run("sha3-256", func() {
+		config := config
+		config.SHA3 = true
+
+		med := genDepManifest(s.T(), config, true)
+
+		config.Dir = dir
+
+		valid, err := medhash.ChkHash(config, med)
+		s.Require().NoError(err)
+
+		s.True(valid)
+	})
+
 	s.Run("sha256", func() {
 		config := config
 		config.SHA256 = true
@@ -115,6 +129,7 @@ func (s *MedHashTestSuite) TestChkHash() {
 		config.MD5 = true
 
 		med := genManifest(s.T(), config)
+		med.Hash.SHA3 = ""
 		med.Hash.SHA3_256 = "afafaf"
 
 		config.Dir = dir
@@ -127,12 +142,22 @@ func (s *MedHashTestSuite) TestChkHash() {
 }
 
 func genManifest(t testing.TB, config medhash.Config) medhash.Media {
+	return genDepManifest(t, config, false)
+}
+
+func genDepManifest(t testing.TB, config medhash.Config, dep bool) medhash.Media {
 	t.Helper()
 
 	require := require.New(t)
 
 	med, err := medhash.GenHash(config)
 	require.NoError(err)
+
+	if !dep {
+		med.Hash.SHA3_256 = ""
+	} else {
+		med.Hash.SHA3 = ""
+	}
 
 	manifest := medhash.New()
 	manifest.Generator = "MedHash Tools Test"

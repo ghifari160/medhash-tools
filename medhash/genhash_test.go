@@ -30,6 +30,7 @@ func (s *MedHashTestSuite) TestGenHash() {
 		m, err := medhash.GenHash(conf)
 		s.Require().NoError(err)
 
+		s.NotEmpty(m.Hash.SHA3)
 		s.NotEmpty(m.Hash.SHA3_256)
 	})
 
@@ -86,6 +87,7 @@ func (s *MedHashTestSuite) TestGenHash() {
 		m, err := medhash.GenHash(conf)
 		s.Require().NoError(err)
 
+		s.NotEmpty(m.Hash.SHA3)
 		s.NotEmpty(m.Hash.SHA3_256)
 		s.NotEmpty(m.Hash.SHA256)
 		s.NotEmpty(m.Hash.SHA1)

@@ -52,8 +52,10 @@ type Media struct {
 
 // Hash stores each hash of a Media.
 type Hash struct {
-	XXH3     string `json:"xxh3,omitempty"`
-	SHA256   string `json:"sha256,omitempty"`
+	XXH3   string `json:"xxh3,omitempty"`
+	SHA256 string `json:"sha256,omitempty"`
+	SHA3   string `json:"sha3,omitempty"`
+	// Deprecated: use SHA3.
 	SHA3_256 string `json:"sha3-256,omitempty"`
 	SHA1     string `json:"sha1,omitempty"`
 	MD5      string `json:"md5,omitempty"`
