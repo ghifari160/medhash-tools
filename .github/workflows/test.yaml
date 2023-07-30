@@ -15,3 +15,19 @@ jobs:
         testArguments: -short ./...
         omitUntestedPackages: true
         omitPie: true
+
+  benchmark:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v4
+      with:
+        go-version-file: "go.mod"
+    - run: |
+        cd _bench && \
+        go build -o bench . && \
+        cd ..
+    - run: go build .
+    - name: Benchmark
+      run: ./_bench/bench -q 5 -s 1G -r benchmark -c ./medhash-tools gen
+    - run: cat benchmark/summary.md >> $GITHUB_STEP_SUMMARY
