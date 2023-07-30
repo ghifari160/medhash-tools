@@ -29,5 +29,8 @@ jobs:
         cd ..
     - run: go build .
     - name: Benchmark
-      run: ./_bench/bench -q 5 -s 1G -r benchmark -c ./medhash-tools gen
+      run: |
+        ./_bench/bench -q 5 -s 1G -r benchmark/ \
+         -l gen -c ./medhash-tools gen \
+         -l chk -c ./medhash-tools chk
     - run: cat benchmark/summary.md >> $GITHUB_STEP_SUMMARY
