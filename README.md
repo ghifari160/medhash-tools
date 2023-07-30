@@ -19,17 +19,24 @@ The legacy branch will be removed after the release of v1.0.0.
 
 | Version | Duration (s) | Rate (GiB/s) | Payload Size (GiB) |
 |---------|--------------|--------------|--------------------|
-| v0.3.0  | 244.7713     | 0.0409       | 10.0000            |
-| Rewrite | 183.9187     | 0.0547       | 10.0000            |
+| v0.3.0  | 161.8317     | 0.0618       | 10.0000            |
+| Rewrite | 197.1969     | 0.0507       | 10.0000            |
 
-These figures are collected using the program in [`_bench`](_bench) with the following parameters:
+These figures are collected using the program in [`_bench`](_bench),
+built using the following parameters
 
 ``` text
-go run . -q 5 -s 10 -c <command> -s 10
+go build .
+```
+
+and executed using the follow parameters.
+
+``` text
+./_bench -q 5 -s 10G -r <path to store report> <-c command [args...]...>
 ```
 
 The program ran on a 2019 MacBook Pro (MacBookPro15,1) with Intel Core i7-9750H,
-16 GB 2400 MHz DDR4, Radeon Pro 560X 4 GB, macOS Ventura 13.4.1, Go 1.20.5.
+16 GB 2400 MHz DDR4, Radeon Pro 560X 4 GB, macOS Ventura 13.4.1, Go 1.20.6.
 
 ## Usage
 
