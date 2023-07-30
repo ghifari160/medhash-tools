@@ -54,18 +54,27 @@ func main() {
 		var report *os.File
 		var printer io.Writer
 
+		var label string
+		if cmd.Label != "" {
+			label = cmd.Label
+		} else {
+			label = filepath.Base(cmd.Cmd)
+		}
+
 		cmd.Args = append(cmd.Args, dir)
 
 		if args.Report != "" {
-			report, err := os.Create(filepath.Join(args.Report, filepath.Base(cmd.Cmd)))
+			report, err := os.Create(filepath.Join(args.Report, label))
 			if err != nil {
 				fmt.Printf("Cannot create report file: %v\n", err)
 				os.Exit(1)
 			}
 			printer = io.MultiWriter(report, os.Stdout)
+		} else {
+			printer = os.Stdout
 		}
 
-		fmt.Fprintf(printer, "Benchmarking %s with arguments [ %s ]\n", cmd.Cmd,
+		fmt.Fprintf(printer, "Benchmarking %s: %s with arguments [ %s ]\n", label, cmd.Cmd,
 			strings.Join(cmd.Args, ", "))
 
 		results := make([]Result, 0)
@@ -87,7 +96,7 @@ func main() {
 		result.Rate /= float64(len(results))
 		result.PayloadSize = args.PayloadSize
 
-		cases[filepath.Base(cmd.Cmd)] = result
+		cases[label] = result
 		fmt.Fprint(printer, result.Report())
 
 		if report != nil {

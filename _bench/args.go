@@ -94,6 +94,9 @@ func (ar *Args) parse(args []string) error {
 
 			case "cmd":
 				op = "cmd"
+
+			case "label":
+				op = "label"
 			}
 		} else if len(a) > 1 && a[:1] == "-" {
 			switch a[1:] {
@@ -111,6 +114,9 @@ func (ar *Args) parse(args []string) error {
 
 			case "c":
 				op = "cmd"
+
+			case "l":
+				op = "label"
 			}
 		}
 
@@ -138,14 +144,24 @@ func (ar *Args) parse(args []string) error {
 			ar.Report = args[i+1]
 			i++
 
-		case "cmd":
-			if c.Cmd != "" {
+		case "label":
+			if c.Cmd != "" && c.Label != "" {
 				ar.Cmd = append(ar.Cmd, c)
+				c = Cmd{
+					Args: make([]string, 0),
+				}
 			}
-			c = Cmd{
-				Cmd:  args[i+1],
-				Args: make([]string, 0),
+			c.Label = args[i+1]
+			i++
+
+		case "cmd":
+			if c.Cmd != "" && c.Label != "" {
+				ar.Cmd = append(ar.Cmd, c)
+				c = Cmd{
+					Args: make([]string, 0),
+				}
 			}
+			c.Cmd = args[i+1]
 			i++
 
 		default:
