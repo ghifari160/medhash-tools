@@ -9,5 +9,9 @@ jobs:
     - uses: actions/setup-go@v4
       with:
         go-version-file: "go.mod"
-    - name: Run tests
-      run: go test -v -short ./...
+    - name: Test
+      uses: robherley/go-test-action@v0.1.0
+      with:
+        testArguments: -short ./...
+        omitUntestedPackages: true
+        omitPie: true
