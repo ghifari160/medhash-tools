@@ -208,7 +208,7 @@ jobs:
         access_key: ${{secrets.S3_ACCESS_KEY}}
         secret_key: ${{secrets.S3_SECRET_KEY}}
     - name: Setup makefat
-      run: go install github.com/randall77/makefat@latest
+      run: go install github.com/randall77/makefat@7ddd0e42c8442593c87c1705a5545099604008e5
     - name: Set env
       run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
     - run: mkdir out
