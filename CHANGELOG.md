@@ -60,6 +60,9 @@ This project attempts to adhere to [Semantic Versioning](https://semver.org/spec
 
 ### Fixed
 
+- Fixed [#1](https://github.com/Ghifari160/medhash-tools/issues/1): invalid memory address when
+  files are not found.
+
 ### Security
 
 - Upgraded `golang.org/x/crypto` to v0.11.0.
