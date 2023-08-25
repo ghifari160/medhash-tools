@@ -28,6 +28,7 @@ jobs:
       run: go build -trimpath -ldflags="-s -w" -o out/bin/medhash .
     - run: cp LICENSE out/
     - run: cp CHANGELOG.md out/
+    - run: cp README.md out/
     - name: Create archive
       run: |
         cd out && \
@@ -65,6 +66,7 @@ jobs:
       run: go build -trimpath -ldflags="-s -w" -o out/bin/medhash .
     - run: cp LICENSE out/
     - run: cp CHANGELOG.md out/
+    - run: cp README.md out/
     - name: Create archive
       run: |
         cd out && \
@@ -102,6 +104,7 @@ jobs:
       run: go build -trimpath -ldflags="-s -w" -o out/bin/medhash .
     - run: cp LICENSE out/
     - run: cp CHANGELOG.md out/
+    - run: cp README.md out/
     - name: Create archive
       run: |
         cd out && \
@@ -139,6 +142,7 @@ jobs:
       run: go build -trimpath -ldflags="-s -w" -o out/bin/medhash .
     - run: cp LICENSE out/
     - run: cp CHANGELOG.md out/
+    - run: cp README.md out/
     - name: Create archive
       run: |
         cd out && \
@@ -176,6 +180,7 @@ jobs:
       run: go build -trimpath -ldflags="-s -w" -o out/bin/medhash .
     - run: cp LICENSE out/
     - run: cp CHANGELOG.md out/
+    - run: cp README.md out/
     - name: Create archive
       run: |
         cd out && \
@@ -214,6 +219,7 @@ jobs:
     - run: mkdir out
     - run: cp LICENSE out/
     - run: cp CHANGELOG.md out/
+    - run: cp README.md out/
 
     - name: Build arm64 binary
       env:
