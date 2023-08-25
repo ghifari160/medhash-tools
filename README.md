@@ -4,7 +4,7 @@ Simple tools for verifying media file integrity.
 
 ## Rewrite
 
-This project is undergoing a rewrite.
+This project has been rewritten.
 
 This project was repurposed from a prototype.
 Rewriting this project meant that it could be designed in a more logical way.
@@ -12,15 +12,16 @@ Rewriting this project meant that it could be designed in a more logical way.
 Code from before the rewrite are available under the
 [legacy](https://github.com/Ghifari160/medhash-tools/tree/legacy) branch.
 
-All legacy code will be removed from the main branch after the release of v0.6.0.
 The legacy branch will be removed after the release of v1.0.0.
 
 ### Performance comparison
 
 | Version | Duration (s) | Rate (GiB/s) | Payload Size (GiB) |
 |---------|--------------|--------------|--------------------|
-| v0.3.0  | 161.8317     | 0.0618       | 10.0000            |
-| Rewrite | 197.1969     | 0.0507       | 10.0000            |
+| v0.5.0  | 227.5550     | 0.0440       | 10.0000            |
+| v0.6.0  | 171.0000     | 0.0585       | 10.0000            |
+
+**Note:** v0.6.0 is the rewrite.
 
 These figures are collected using the program in [`_bench`](_bench),
 built using the following parameters
