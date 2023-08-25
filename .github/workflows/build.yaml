@@ -32,16 +32,16 @@ jobs:
     - name: Create archive
       run: |
         cd out && \
-        tar -zcvf "../medhash-$ARCHID.tar.gz" . && \
+        tar -zcvf "../medhash-tools-$ARCHID.tar.gz" . && \
         cd ..
     - uses: actions/upload-artifact@v3
       with:
-        name: medhash-${{env.ARCHID}}
-        path: medhash-${{env.ARCHID}}.tar.gz
+        name: medhash-tools-${{env.ARCHID}}
+        path: medhash-tools-${{env.ARCHID}}.tar.gz
     - name: Upload archive to S3
       env:
         OUTPUT: ${{vars.S3_BUCKET}}/${{env.RELEASE_VERSION}}/
-      run: s3cmd put "medhash-$ARCHID.tar.gz" -P "$OUTPUT"
+      run: s3cmd put "medhash-tools-$ARCHID.tar.gz" -P "$OUTPUT"
 
   build-linux-amd64:
     runs-on: ubuntu-22.04
@@ -70,16 +70,40 @@ jobs:
     - name: Create archive
       run: |
         cd out && \
-        tar -zcvf "../medhash-$ARCHID.tar.gz" . && \
+        tar -zcvf "../medhash-tools-$ARCHID.tar.gz" . && \
         cd ..
-    - uses: actions/upload-artifact@v3
+    - name: Create Homebrew bottle
+      env:
+        BOTTLE_NAME: medhash-tools-${{env.RELEASE_VERSION}}.x86_64_linux.bottle.tar.gz
+        BOTTLING_PATH: bottle/medhash-tools/${{env.RELEASE_VERSION}}
+        FORMULA_PATH: bottle/medhash-tools/${{env.RELEASE_VERSION}}/.brew/${{vars.HOMEBREW_FORMULA}}.rb
+        FORMULA_URL: https://raw.githubusercontent.com/${{vars.HOMEBREW_TAP}}/main/Formula/${{vars.HOMEBREW_FORMULA}}.rb
+      run: |
+        mkdir -p "$BOTTLING_PATH/.brew"
+        cp -R out/. "$BOTTLING_PATH"
+        curl -o "$FORMULA_PATH" -fsSL "$FORMULA_URL"
+        cd bottle
+        tar -zcvf "../$BOTTLE_NAME" .
+        cd ..
+    - name: Upload archive
+      uses: actions/upload-artifact@v3
       with:
-        name: medhash-${{env.ARCHID}}
-        path: medhash-${{env.ARCHID}}.tar.gz
+        name: medhash-tools-${{env.ARCHID}}
+        path: medhash-tools-${{env.ARCHID}}.tar.gz
+    - name: Upload Homebrew bottle
+      uses: actions/upload-artifact@v3
+      with:
+        name: medhash-tools-${{env.RELEASE_VERSION}}.x86_64_linux.bottle
+        path: medhash-tools-${{env.RELEASE_VERSION}}.x86_64_linux.bottle.tar.gz
     - name: Upload archive to S3
       env:
         OUTPUT: ${{vars.S3_BUCKET}}/${{env.RELEASE_VERSION}}/
-      run: s3cmd put "medhash-$ARCHID.tar.gz" -P "$OUTPUT"
+      run: s3cmd put "medhash-tools-$ARCHID.tar.gz" -P "$OUTPUT"
+    - name: Upload Homebrew bottle to S3
+      env:
+        BOTTLE_NAME: medhash-tools-${{env.RELEASE_VERSION}}.x86_64_linux.bottle.tar.gz
+        OUTPUT: ${{vars.BOTTLE_S3_BUCKET}}/
+      run: s3cmd put "$BOTTLE_NAME" -P "$OUTPUT"
 
   build-linux-arm64:
     runs-on: ubuntu-22.04
@@ -108,16 +132,16 @@ jobs:
     - name: Create archive
       run: |
         cd out && \
-        tar -zcvf "../medhash-$ARCHID.tar.gz" . && \
+        tar -zcvf "../medhash-tools-$ARCHID.tar.gz" . && \
         cd ..
     - uses: actions/upload-artifact@v3
       with:
-        name: medhash-${{env.ARCHID}}
-        path: medhash-${{env.ARCHID}}.tar.gz
+        name: medhash-tools-${{env.ARCHID}}
+        path: medhash-tools-${{env.ARCHID}}.tar.gz
     - name: Upload archive to S3
       env:
         OUTPUT: ${{vars.S3_BUCKET}}/${{env.RELEASE_VERSION}}/
-      run: s3cmd put "medhash-$ARCHID.tar.gz" -P "$OUTPUT"
+      run: s3cmd put "medhash-tools-$ARCHID.tar.gz" -P "$OUTPUT"
 
   build-windows-x86:
     runs-on: ubuntu-22.04
@@ -146,16 +170,16 @@ jobs:
     - name: Create archive
       run: |
         cd out && \
-        tar -zcvf "../medhash-$ARCHID.tar.gz" . && \
+        tar -zcvf "../medhash-tools-$ARCHID.tar.gz" . && \
         cd ..
     - uses: actions/upload-artifact@v3
       with:
-        name: medhash-${{env.ARCHID}}
-        path: medhash-${{env.ARCHID}}.tar.gz
+        name: medhash-tools-${{env.ARCHID}}
+        path: medhash-tools-${{env.ARCHID}}.tar.gz
     - name: Upload archive to S3
       env:
         OUTPUT: ${{vars.S3_BUCKET}}/${{env.RELEASE_VERSION}}/
-      run: s3cmd put "medhash-$ARCHID.tar.gz" -P "$OUTPUT"
+      run: s3cmd put "medhash-tools-$ARCHID.tar.gz" -P "$OUTPUT"
 
   build-windows-amd64:
     runs-on: ubuntu-22.04
@@ -184,16 +208,16 @@ jobs:
     - name: Create archive
       run: |
         cd out && \
-        tar -zcvf "../medhash-$ARCHID.tar.gz" . && \
+        tar -zcvf "../medhash-tools-$ARCHID.tar.gz" . && \
         cd ..
     - uses: actions/upload-artifact@v3
       with:
-        name: medhash-${{env.ARCHID}}
-        path: medhash-${{env.ARCHID}}.tar.gz
+        name: medhash-tools-${{env.ARCHID}}
+        path: medhash-tools-${{env.ARCHID}}.tar.gz
     - name: Upload archive to S3
       env:
         OUTPUT: ${{vars.S3_BUCKET}}/${{env.RELEASE_VERSION}}/
-      run: s3cmd put "medhash-$ARCHID.tar.gz" -P "$OUTPUT"
+      run: s3cmd put "medhash-tools-$ARCHID.tar.gz" -P "$OUTPUT"
 
   build-macos:
     runs-on: ubuntu-22.04
@@ -201,6 +225,7 @@ jobs:
       ARCHID: macos
       ARCHID_ARM64: macos_arm64
       ARCHID_AMD64: macos_amd64
+      BOTTLE_PLATFORMS: ventura monterey big_sur
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-go@v4
@@ -229,17 +254,17 @@ jobs:
     - name: Create arm64 archive
       run: |
         cd out && \
-        tar -zcvf "../medhash-$ARCHID_ARM64.tar.gz" . && \
+        tar -zcvf "../medhash-tools-$ARCHID_ARM64.tar.gz" . && \
         cd ..
     - name: Upload arm64 archive
       uses: actions/upload-artifact@v3
       with:
-        name: medhash-${{env.ARCHID_ARM64}}
-        path: medhash-${{env.ARCHID_ARM64}}.tar.gz
+        name: medhash-tools-${{env.ARCHID_ARM64}}
+        path: medhash-tools-${{env.ARCHID_ARM64}}.tar.gz
     - name: Upload arm64 archive to S3
       env:
         OUTPUT: ${{vars.S3_BUCKET}}/${{env.RELEASE_VERSION}}/
-      run: s3cmd put "medhash-$ARCHID_ARM64.tar.gz" -P "$OUTPUT"
+      run: s3cmd put "medhash-tools-$ARCHID_ARM64.tar.gz" -P "$OUTPUT"
     - run: mv out/bin/medhash medhash-arm64
 
     - name: Build amd64 binary
@@ -250,17 +275,17 @@ jobs:
     - name: Create amd64 archive
       run: |
         cd out && \
-        tar -zcvf "../medhash-$ARCHID_AMD64.tar.gz" . && \
+        tar -zcvf "../medhash-tools-$ARCHID_AMD64.tar.gz" . && \
         cd ..
     - name: Upload amd64 archive
       uses: actions/upload-artifact@v3
       with:
-        name: medhash-${{env.ARCHID_AMD64}}
-        path: medhash-${{env.ARCHID_AMD64}}.tar.gz
+        name: medhash-tools-${{env.ARCHID_AMD64}}
+        path: medhash-tools-${{env.ARCHID_AMD64}}.tar.gz
     - name: Upload amd64 archive to S3
       env:
         OUTPUT: ${{vars.S3_BUCKET}}/${{env.RELEASE_VERSION}}/
-      run: s3cmd put "medhash-$ARCHID_AMD64.tar.gz" -P "$OUTPUT"
+      run: s3cmd put "medhash-tools-$ARCHID_AMD64.tar.gz" -P "$OUTPUT"
     - run: mv out/bin/medhash medhash-amd64
 
     - name: Build universal binary
@@ -268,14 +293,43 @@ jobs:
     - name: Create universal archive
       run: |
         cd out && \
-        tar -zcvf "../medhash-$ARCHID.tar.gz" . && \
+        tar -zcvf "../medhash-tools-$ARCHID.tar.gz" . && \
+        cd ..
+    - name: Create Homebrew bottles
+      env:
+          BOTTLE_NAME: medhash-tools-${{env.RELEASE_VERSION}}
+          BOTTLING_PATH: bottle/medhash-tools/${{env.RELEASE_VERSION}}
+          FORMULA_PATH: bottle/medhash-tools/${{env.RELEASE_VERSION}}/.brew/${{vars.HOMEBREW_FORMULA}}.rb
+          FORMULA_URL: https://raw.githubusercontent.com/${{vars.HOMEBREW_TAP}}/main/Formula/${{vars.HOMEBREW_FORMULA}}.rb
+      run: |
+        mkdir -p "$BOTTLING_PATH/.brew"
+        cp -R out/. "$BOTTLING_PATH"
+        curl -o "$FORMULA_PATH" -fsSL "$FORMULA_URL"
+        cd bottle
+        for platform in ${BOTTLE_PLATFORMS[@]}; do
+          echo "$platform"
+          tar -zcvf "../$BOTTLE_NAME.$platform.bottle.tar.gz" .
+        done
         cd ..
     - name: Upload universal archive
       uses: actions/upload-artifact@v3
       with:
-        name: medhash-${{env.ARCHID}}
-        path: medhash-${{env.ARCHID}}.tar.gz
+        name: medhash-tools-${{env.ARCHID}}
+        path: medhash-tools-${{env.ARCHID}}.tar.gz
+    - name: Upload Homebrew bottles
+      uses: actions/upload-artifact@v3
+      with:
+        name: medhash-tools-${{env.RELEASE_VERSION}}.macos.bottle
+        path: medhash-tools-${{env.RELEASE_VERSION}}.*.bottle.tar.gz
     - name: Upload universal archive to S3
       env:
         OUTPUT: ${{vars.S3_BUCKET}}/${{env.RELEASE_VERSION}}/
-      run: s3cmd put "medhash-$ARCHID.tar.gz" -P "$OUTPUT"
+      run: s3cmd put "medhash-tools-$ARCHID.tar.gz" -P "$OUTPUT"
+    - name: Upload Homebrew bottles to S3
+      env:
+        BOTTLE_NAME: medhash-tools-${{env.RELEASE_VERSION}}
+        OUTPUT: ${{vars.BOTTLE_S3_BUCKET}}/
+      run: |
+        for platform in ${BOTTLE_PLATFORMS[@]}; do
+          s3cmd put "$BOTTLE_NAME.$platform.bottle.tar.gz" -P "$OUTPUT"
+        done
