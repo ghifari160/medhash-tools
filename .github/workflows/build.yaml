@@ -1,8 +1,8 @@
 name: Build Go binary
 on:
-  push:
-    tags:
-      - "[0-9]+.[0-9]+.[0-9]+"
+  release:
+    types:
+      - published
 
 jobs:
   build-linux-386:
