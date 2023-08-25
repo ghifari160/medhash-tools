@@ -19,6 +19,7 @@ out/
 .vscode
 
 # Project-specific ignores
+medhash-tools
 medhash.json
 sums.txt
 config
