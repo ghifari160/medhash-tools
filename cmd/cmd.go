@@ -1,5 +1,15 @@
 package cmd
 
+import "github.com/ghifari160/medhash-tools/color"
+
+const (
+	MsgStatusError   = color.Red + "ERROR" + color.Reset
+	MsgStatusOK      = color.Green + "OK" + color.Reset
+	MsgStatusSkipped = color.Yellow + "SKIPPED" + color.Reset
+	MsgFinalError    = color.Red + "Error!" + color.Reset
+	MsgFinalDone     = color.Green + "Done!" + color.Reset
+)
+
 // Command is a generic wrapper for all subcommands.
 type Command interface {
 	Execute() (status int)

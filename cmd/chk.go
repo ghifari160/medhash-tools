@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/ghifari160/medhash-tools/color"
 	"github.com/ghifari160/medhash-tools/medhash"
 )
 
@@ -37,7 +38,7 @@ func (c *Chk) Execute() (status int) {
 	if len(c.Dirs) < 1 {
 		cwd, err := os.Getwd()
 		if err != nil {
-			fmt.Printf("error: %v\n", err)
+			color.Printf("error: %v\n", err)
 			status = 1
 
 			return
@@ -58,18 +59,18 @@ func (c *Chk) Execute() (status int) {
 			manPath = filepath.Join(dir, medhash.DefaultManifestName)
 		}
 
-		fmt.Printf("Checking MedHash for %s\n", dir)
+		color.Printf("Checking MedHash for %s\n", dir)
 
 		errs := c.chk(manPath, conf, c.Files)
 		if errs != nil {
-			fmt.Println("Error!")
+			color.Println(MsgFinalError)
 			status = 1
 
 			for _, err := range errs {
-				fmt.Println(err)
+				color.Println(err)
 			}
 		} else {
-			fmt.Println("Done!")
+			color.Println(MsgFinalDone)
 		}
 	}
 
@@ -92,7 +93,7 @@ func (c *Chk) chk(manPath string, config medhash.Config, files []string) (errs [
 	}
 
 	for _, med := range manifest.Media {
-		fmt.Printf("  %s: ", filepath.Join(config.Dir, med.Path))
+		color.Printf("  %s: ", filepath.Join(config.Dir, med.Path))
 
 		if len(files) > 0 {
 			skipped := true
@@ -100,7 +101,7 @@ func (c *Chk) chk(manPath string, config medhash.Config, files []string) (errs [
 			for _, file := range files {
 				matched, err := filepath.Match(file, med.Path)
 				if err != nil {
-					fmt.Println("ERROR")
+					color.Println(MsgStatusError)
 					errs = append(errs, err)
 
 					continue
@@ -113,17 +114,17 @@ func (c *Chk) chk(manPath string, config medhash.Config, files []string) (errs [
 			}
 
 			if skipped {
-				fmt.Println("SKIPPED")
+				color.Println(MsgStatusSkipped)
 				continue
 			}
 		}
 
 		valid, err := medhash.ChkHash(config, med)
 		if err == nil && valid {
-			fmt.Println("OK")
+			color.Println(MsgStatusOK)
 			continue
 		} else {
-			fmt.Println("ERROR")
+			color.Println(MsgStatusError)
 
 			if err == nil {
 				err = fmt.Errorf("invalid hash for %s", filepath.Join(config.Dir, med.Path))

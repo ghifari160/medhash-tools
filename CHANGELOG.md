@@ -29,6 +29,8 @@ This project attempts to adhere to [Semantic Versioning](https://semver.org/spec
   - Added `--sha1` parameter.
   - Added `--md5` parameter.
 - Added `version` command.
+- Added colored status labels.
+  It works on Windows too!
 
 ### Changed
 
@@ -50,6 +52,9 @@ This project attempts to adhere to [Semantic Versioning](https://semver.org/spec
   the former before attempting to verify the latter.
 
 ### Removed
+
+- Removed `-v` parameter.
+  Previously, this parameter enables verbose mode.
 
 ### Fixed
 

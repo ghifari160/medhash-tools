@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/ghifari160/medhash-tools/color"
 	"github.com/ghifari160/medhash-tools/medhash"
 )
 
@@ -36,7 +37,7 @@ func (g *Gen) Execute() (status int) {
 	if len(g.Dirs) < 1 {
 		cwd, err := os.Getwd()
 		if err != nil {
-			fmt.Printf("error: %v\n", err)
+			color.Printf("error: %v\n", err)
 			status = 1
 
 			return
@@ -58,7 +59,7 @@ func (g *Gen) Execute() (status int) {
 	}
 
 	for _, dir := range g.Dirs {
-		fmt.Printf("Generating MedHash for %s\n", dir)
+		color.Printf("Generating MedHash for %s\n", dir)
 
 		c := config
 		c.Dir = dir
@@ -66,14 +67,14 @@ func (g *Gen) Execute() (status int) {
 		errs := GenFunc(c, g.Ignores)
 
 		if errs != nil {
-			fmt.Println("Error!")
+			color.Println(MsgFinalError)
 			status = 1
 
 			for _, err := range errs {
-				fmt.Println(err)
+				color.Println(err)
 			}
 		} else {
-			fmt.Println("Done!")
+			color.Println(MsgFinalDone)
 		}
 	}
 
@@ -89,13 +90,13 @@ func GenFunc(config medhash.Config, ignores []string) (errs []error) {
 			return nil
 		}
 
-		fmt.Printf("  %s: ", path)
+		color.Printf("  %s: ", path)
 
 		c := config
 		c.Dir = config.Dir
 
 		if err != nil {
-			fmt.Println("ERROR")
+			color.Println(MsgStatusError)
 			errs = append(errs, err)
 
 			return nil
@@ -103,7 +104,7 @@ func GenFunc(config medhash.Config, ignores []string) (errs []error) {
 
 		rel, err := filepath.Rel(c.Dir, path)
 		if err != nil {
-			fmt.Println("ERROR")
+			color.Println(MsgStatusError)
 			errs = append(errs, err)
 
 			return nil
@@ -112,14 +113,14 @@ func GenFunc(config medhash.Config, ignores []string) (errs []error) {
 		for _, ignore := range ignores {
 			matched, err := filepath.Match(ignore, rel)
 			if err != nil {
-				fmt.Println("ERROR")
+				color.Println(MsgStatusError)
 				errs = append(errs, err)
 
 				continue
 			}
 
 			if matched {
-				fmt.Println("SKIPPED")
+				color.Println(MsgStatusSkipped)
 
 				return nil
 			}
@@ -129,13 +130,13 @@ func GenFunc(config medhash.Config, ignores []string) (errs []error) {
 
 		med, err := medhash.GenHash(c)
 		if err != nil {
-			fmt.Println("ERROR")
+			color.Println(MsgStatusError)
 			errs = append(errs, err)
 
 			return nil
 		}
 
-		fmt.Println("OK")
+		color.Println(MsgStatusOK)
 		media = append(media, med)
 
 		return nil
@@ -144,23 +145,23 @@ func GenFunc(config medhash.Config, ignores []string) (errs []error) {
 		errs = append(errs, err)
 	}
 
-	fmt.Println("Sanity checking files")
+	color.Println("Sanity checking files")
 
 	for i, med := range media {
 		c := config
 
-		fmt.Printf("  %s: ", (filepath.Join(c.Dir, med.Path)))
+		color.Printf("  %s: ", (filepath.Join(c.Dir, med.Path)))
 
 		valid, err := medhash.ChkHash(c, med)
 		if err == nil && valid {
-			fmt.Println("OK")
+			color.Println(MsgStatusOK)
 
 			continue
 		} else if err == nil && !valid {
-			fmt.Println("ERROR")
+			color.Println(MsgStatusError)
 			errs = append(errs, fmt.Errorf("invalid hash for %s", med.Path))
 		} else {
-			fmt.Println("ERROR")
+			color.Println(MsgStatusError)
 			errs = append(errs, err)
 		}
 
