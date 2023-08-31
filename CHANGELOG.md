@@ -13,6 +13,8 @@ This project attempts to adhere to [Semantic Versioning](https://semver.org/spec
 
 ### Changed
 
+- Upgraded `gopkg.in/yaml.v3` to v3.0.0.
+
 ### Deprecated
 
 ### Removed
