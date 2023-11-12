@@ -134,4 +134,11 @@ type Config struct {
 	SHA1 bool
 	// MD5 toggles the MD5 hash generation.
 	MD5 bool
+
+	// Ed25519 configures the Ed25519 signature generation/verification.
+	Ed25519 struct {
+		Enabled    bool
+		PrivateKey []byte
+		PublicKey  []byte
+	}
 }
