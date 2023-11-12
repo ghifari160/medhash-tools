@@ -38,6 +38,30 @@ func (s *CmdSuite) TestChk() {
 		testcommon.VerifyManifest(s.T(), dir, config, payload.Hash)
 	})
 
+	s.Run("sha512", func() {
+		testcommon.CreateManifest(s.T(), dir, payload, medhash.ManifestFormatVer, medhash.Config{
+			SHA3: true,
+		})
+		s.T().Cleanup(func() {
+			err := os.Remove(filepath.Join(dir, medhash.DefaultManifestName))
+			s.Require().NoError(err)
+		})
+
+		c := new(cmd.Chk)
+		c.Dirs = []string{dir}
+		c.Default = true
+		c.SHA512 = true
+
+		status := c.Execute()
+		s.Require().Zero(status)
+
+		config := medhash.Config{
+			SHA512: true,
+		}
+
+		testcommon.VerifyManifest(s.T(), dir, config, payload.Hash)
+	})
+
 	s.Run("sha3", func() {
 		testcommon.CreateManifest(s.T(), dir, payload, medhash.ManifestFormatVer, medhash.Config{
 			SHA3: true,
@@ -200,7 +224,12 @@ func (s *CmdSuite) TestChk() {
 
 		s.Require().Equal(medhash.ManifestFormatVer, manifest.Get("version").Str())
 
+		if config.SHA512 {
+			s.Equal(payload.Hash.SHA512, manifest.Get("media[0].hash.sha512").Str())
+		}
+
 		if config.SHA3 {
+			s.Equal(payload.Hash.SHA3, manifest.Get("media[0].hash.sha3").Str())
 			s.Equal(payload.Hash.SHA3_256, manifest.Get("media[0].hash.sha3-256").Str())
 		}
 

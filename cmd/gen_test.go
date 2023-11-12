@@ -36,6 +36,29 @@ func (s *CmdSuite) TestGen() {
 		testcommon.VerifyManifest(s.T(), dir, config, payload.Hash)
 	})
 
+	s.Run("sha512", func() {
+		s.T().Cleanup(func() {
+			err := os.Remove(filepath.Join(dir, medhash.DefaultManifestName))
+			s.Require().NoError(err)
+		})
+
+		c := new(cmd.Gen)
+		c.Dirs = []string{dir}
+		c.Default = true
+		c.SHA512 = true
+
+		status := c.Execute()
+		s.Require().Zero(status)
+
+		s.Require().FileExists(filepath.Join(dir, medhash.DefaultManifestName))
+
+		config := medhash.Config{
+			SHA512: true,
+		}
+
+		testcommon.VerifyManifest(s.T(), dir, config, payload.Hash)
+	})
+
 	s.Run("sha3", func() {
 		s.T().Cleanup(func() {
 			err := os.Remove(filepath.Join(dir, medhash.DefaultManifestName))
@@ -144,7 +167,7 @@ func (s *CmdSuite) TestGen() {
 
 		s.Require().FileExists(filepath.Join(dir, medhash.DefaultManifestName))
 
-		testcommon.VerifyManifest(s.T(), dir, medhash.DefaultConfig, payload.Hash)
+		testcommon.VerifyManifest(s.T(), dir, medhash.AllConfig, payload.Hash)
 	})
 
 	s.Run("default", func() {

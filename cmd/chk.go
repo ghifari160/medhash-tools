@@ -25,8 +25,9 @@ func (c *Chk) Execute() (status int) {
 
 	if c.All {
 		config = medhash.AllConfig
-	} else if c.XXH3 || c.SHA3 || c.SHA256 || c.SHA1 || c.MD5 {
+	} else if c.XXH3 || c.SHA512 || c.SHA3 || c.SHA256 || c.SHA1 || c.MD5 {
 		config.XXH3 = c.XXH3
+		config.SHA512 = c.SHA512
 		config.SHA3 = c.SHA3
 		config.SHA256 = c.SHA256
 		config.SHA1 = c.SHA1
