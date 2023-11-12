@@ -25,9 +25,10 @@ var (
 
 // Manifest is a MedHash manifest.
 type Manifest struct {
-	Version   string  `json:"version"`
-	Generator string  `json:"generator,omitempty"`
-	Media     []Media `json:"media"`
+	Version   string     `json:"version"`
+	Generator string     `json:"generator,omitempty"`
+	Media     []Media    `json:"media"`
+	Signature *Signature `json:"signature,omitempty"`
 
 	Config Config `json:"-"`
 }
@@ -49,6 +50,11 @@ func NewWithConfig(config Config) *Manifest {
 type Media struct {
 	Path string `json:"path"`
 	Hash Hash   `json:"hash"`
+}
+
+// Signature stores the signature of the Manifest.
+type Signature struct {
+	Ed25519 string `json:"ed25519,omitempty"`
 }
 
 // Hash stores each hash of a Media.
