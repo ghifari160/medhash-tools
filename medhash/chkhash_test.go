@@ -34,6 +34,20 @@ func (s *MedHashTestSuite) TestChkHash() {
 		s.True(valid)
 	})
 
+	s.Run("sha512", func() {
+		config := config
+		config.SHA512 = true
+
+		med := genManifest(s.T(), config)
+
+		config.Dir = dir
+
+		valid, err := medhash.ChkHash(config, med)
+		s.Require().NoError(err)
+
+		s.True(valid)
+	})
+
 	s.Run("sha3", func() {
 		config := config
 		config.SHA3 = true
@@ -106,6 +120,8 @@ func (s *MedHashTestSuite) TestChkHash() {
 
 	s.Run("all", func() {
 		config := config
+		config.XXH3 = true
+		config.SHA512 = true
 		config.SHA3 = true
 		config.SHA256 = true
 		config.SHA1 = true

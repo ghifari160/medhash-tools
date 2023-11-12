@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"crypto/sha1"
 	"crypto/sha256"
+	"crypto/sha512"
 	"encoding/hex"
 	"hash"
 	"io"
@@ -28,6 +29,11 @@ func genHash(config Config) (med Media, err error) {
 	if config.XXH3 {
 		hashers["xxh3"] = xxh3.New()
 		writers = append(writers, hashers["xxh3"])
+	}
+
+	if config.SHA512 {
+		hashers["sha512"] = sha512.New()
+		writers = append(writers, hashers["sha512"])
 	}
 
 	if config.SHA3 {
@@ -67,6 +73,10 @@ func genHash(config Config) (med Media, err error) {
 
 	if h := hashers["xxh3"]; h != nil {
 		hash.XXH3 = hex.EncodeToString(h.Sum(nil))
+	}
+
+	if h := hashers["sha512"]; h != nil {
+		hash.SHA512 = hex.EncodeToString(h.Sum(nil))
 	}
 
 	if h := hashers["sha3"]; h != nil {

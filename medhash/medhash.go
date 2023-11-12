@@ -1,6 +1,6 @@
 package medhash
 
-const ManifestFormatVer = "0.5.0"
+const ManifestFormatVer = "0.6.0"
 const DefaultManifestName = "medhash.json"
 
 var (
@@ -9,6 +9,7 @@ var (
 	}
 	AllConfig = Config{
 		XXH3:   true,
+		SHA512: true,
 		SHA3:   true,
 		SHA256: true,
 		SHA1:   true,
@@ -53,6 +54,7 @@ type Media struct {
 // Hash stores each hash of a Media.
 type Hash struct {
 	XXH3   string `json:"xxh3,omitempty"`
+	SHA512 string `json:"sha512,omitempty"`
 	SHA256 string `json:"sha256,omitempty"`
 	SHA3   string `json:"sha3,omitempty"`
 	// Deprecated: use SHA3.
@@ -70,6 +72,8 @@ type Config struct {
 
 	// XXH3 toggles the XXH3_64 hash generation.
 	XXH3 bool
+	// SHA512 toggles the SHA512 hash generation.
+	SHA512 bool
 	// SHA3 toggles the SHA3-256 hash generation.
 	SHA3 bool
 	// SHA256 toggles the SHA256 hash generation.

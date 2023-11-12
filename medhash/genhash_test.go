@@ -20,6 +20,19 @@ func (s *MedHashTestSuite) TestGenHash() {
 		s.NotEmpty(m.Hash.XXH3)
 	})
 
+	s.Run("sha512", func() {
+		conf := medhash.Config{
+			Dir:    dir,
+			Path:   payload,
+			SHA512: true,
+		}
+
+		m, err := medhash.GenHash(conf)
+		s.Require().NoError(err)
+
+		s.NotEmpty(m.Hash.SHA512)
+	})
+
 	s.Run("sha3", func() {
 		conf := medhash.Config{
 			Dir:  dir,
