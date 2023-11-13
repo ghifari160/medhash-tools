@@ -37,7 +37,16 @@ func CreateManifest(t testing.TB, dir string, payload medhash.Media, ver string,
 
 	require := require.New(t)
 
+	if !config.XXH3 {
+		payload.Hash.XXH3 = ""
+	}
+
+	if !config.SHA512 {
+		payload.Hash.SHA512 = ""
+	}
+
 	if !config.SHA3 {
+		payload.Hash.SHA3 = ""
 		payload.Hash.SHA3_256 = ""
 	}
 
@@ -89,7 +98,17 @@ func VerifyManifest(t testing.TB, dir string, config medhash.Config, hash medhas
 
 	require.Equal(medhash.ManifestFormatVer, manifest.Get("version").Str())
 
+	if config.XXH3 {
+		assert.Equal(hash.XXH3, manifest.Get("media[0].hash.xxh3").Str())
+	}
+
+	if config.SHA512 {
+		assert.Equal(hash.SHA512, manifest.Get("media[0].hash.sha512").Str())
+	}
+
 	if config.SHA3 {
+		assert.Equal(hash.SHA3, hash.SHA3_256)
+		assert.Equal(hash.SHA3, manifest.Get("media[0].hash.sha3").Str())
 		assert.Equal(hash.SHA3_256, manifest.Get("media[0].hash.sha3-256").Str())
 	}
 

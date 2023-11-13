@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/sha1"
 	"crypto/sha256"
+	"crypto/sha512"
 	"encoding/hex"
 	"io"
 	"os"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/ghifari160/medhash-tools/medhash"
 	"github.com/stretchr/testify/require"
+	"github.com/zeebo/xxh3"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -39,11 +41,13 @@ func GenPayload(t testing.TB, dir string, size int64) (payload medhash.Media) {
 	f, err := os.Create(filepath.Join(dir, payload.Path))
 	require.NoError(err)
 
+	xxh3 := xxh3.New()
+	sha512 := sha512.New()
 	sha3 := sha3.New256()
 	sha256 := sha256.New()
 	sha1 := sha1.New()
 	md5 := md5.New()
-	writer := io.MultiWriter(f, sha3, sha256, sha1, md5)
+	writer := io.MultiWriter(f, xxh3, sha512, sha3, sha256, sha1, md5)
 
 	for counter < size {
 		n, err := rand.Read(buf)
@@ -62,6 +66,9 @@ func GenPayload(t testing.TB, dir string, size int64) (payload medhash.Media) {
 	err = f.Close()
 	require.NoError(err)
 
+	payload.Hash.XXH3 = hex.EncodeToString(xxh3.Sum(nil))
+	payload.Hash.SHA512 = hex.EncodeToString(sha512.Sum(nil))
+	payload.Hash.SHA3 = hex.EncodeToString(sha3.Sum(nil))
 	payload.Hash.SHA3_256 = hex.EncodeToString(sha3.Sum(nil))
 	payload.Hash.SHA256 = hex.EncodeToString(sha256.Sum(nil))
 	payload.Hash.SHA1 = hex.EncodeToString(sha1.Sum(nil))
