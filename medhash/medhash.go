@@ -1,5 +1,9 @@
 package medhash
 
+import (
+	"encoding/json"
+)
+
 const ManifestFormatVer = "0.6.0"
 const DefaultManifestName = "medhash.json"
 
@@ -31,6 +35,48 @@ type Manifest struct {
 	Signature *Signature `json:"signature,omitempty"`
 
 	Config Config `json:"-"`
+}
+
+// JSON serializes m to JSON.
+func (m *Manifest) JSON() ([]byte, error) {
+	return json.MarshalIndent(m, "", "  ")
+}
+
+// String implements the Stringer interface.
+func (m *Manifest) String() string {
+	j, err := m.JSON()
+	if err != nil {
+		panic(err)
+	}
+
+	return string(j)
+}
+
+// Copy copies m to target.
+func (m *Manifest) Copy(target *Manifest) {
+	target.Version = m.Version
+	target.Generator = m.Generator
+	target.Config = m.Config
+
+	target.Media = make([]Media, len(m.Media))
+	copy(target.Media, m.Media)
+
+	if m.Signature != nil {
+		target.Signature = new(Signature)
+		target.Signature.Ed25519 = m.Signature.Ed25519
+	}
+}
+
+// StripSignature returns a copy of m with Signature stripped.
+// It also returns the stripped Signature.
+func (m *Manifest) StripSignature() (stripped *Manifest, signature *Signature) {
+	stripped = new(Manifest)
+	m.Copy(stripped)
+	stripped.Signature = nil
+
+	signature = m.Signature
+
+	return
 }
 
 // New creates a new Manifest with the default configuration.
