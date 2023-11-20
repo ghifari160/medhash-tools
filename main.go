@@ -16,6 +16,7 @@ func main() {
 		Gen     *cmd.Gen        `arg:"subcommand:gen" help:"generate MedHash Manifest"`
 		Chk     *cmd.Chk        `arg:"subcommand:chk" help:"verify directories or files"`
 		Upgrade *cmd.Upgrade    `arg:"subcommand:upgrade" help:"upgrade MedHash Manifest"`
+		Keygen  *cmd.Keygen     `arg:"subcommand:keygen" help:"generate signing keys"`
 		Ver     *cmd.GenericCmd `arg:"subcommand:version" help:"print tool version"`
 	}
 
@@ -39,6 +40,9 @@ func main() {
 
 	case args.Upgrade != nil:
 		c = args.Upgrade
+
+	case args.Keygen != nil:
+		c = args.Keygen
 
 	case args.Ver != nil:
 		c = new(cmd.GenericCmd)

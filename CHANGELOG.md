@@ -11,6 +11,8 @@ This project attempts to adhere to [Semantic Versioning](https://semver.org/spec
 
 ### Added
 
+- Added command `keygen`. Generate Ed25519 keypair for use in Manifest signing.
+
 ### Changed
 
 - Bumped Go version to v1.24.2.
