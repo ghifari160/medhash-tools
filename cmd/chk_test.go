@@ -40,7 +40,7 @@ func (s *CmdSuite) TestChk() {
 
 	s.Run("sha512", func() {
 		testcommon.CreateManifest(s.T(), dir, payload, medhash.ManifestFormatVer, medhash.Config{
-			SHA3: true,
+			SHA512: true,
 		})
 		s.T().Cleanup(func() {
 			err := os.Remove(filepath.Join(dir, medhash.DefaultManifestName))
