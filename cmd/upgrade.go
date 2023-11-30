@@ -85,7 +85,7 @@ func (u *Upgrade) Execute() (status int) {
 			errs = u.upgradeJSON(c)
 		}
 
-		if errs != nil {
+		if len(errs) > 0 {
 			color.Println(MsgFinalError)
 			status = 1
 
@@ -155,7 +155,10 @@ func (u *Upgrade) v010(genConfig medhash.Config) (errs []error) {
 	}
 
 	color.Printf("Generating MedHash for %s\n", genConfig.Dir)
-	errs = append(errs, GenFunc(genConfig, u.Ignores)...)
+	manifest, genErrs := GenFunc(genConfig, u.Ignores)
+	errs = append(errs, genErrs...)
+
+	errs = append(errs, WriteFunc(genConfig, manifest)...)
 
 	return
 }
@@ -206,7 +209,10 @@ func (u *Upgrade) upgradeJSON(config medhash.Config) (errs []error) {
 
 	color.Println("Generating MedHash")
 
-	errs = append(errs, GenFunc(config, u.Ignores)...)
+	manifest, genErrs := GenFunc(config, u.Ignores)
+	errs = append(errs, genErrs...)
+
+	errs = append(errs, WriteFunc(config, manifest)...)
 
 	return
 }

@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/fs"
 	"os"
@@ -65,9 +64,14 @@ func (g *Gen) Execute() (status int) {
 		c := config
 		c.Dir = dir
 
-		errs := GenFunc(c, g.Ignores)
+		errs := make([]error, 0)
 
-		if errs != nil {
+		manifest, err := GenFunc(c, g.Ignores)
+		errs = append(errs, err...)
+
+		errs = append(errs, WriteFunc(c, manifest)...)
+
+		if len(errs) > 0 {
 			color.Println(MsgFinalError)
 			status = 1
 
@@ -83,7 +87,7 @@ func (g *Gen) Execute() (status int) {
 }
 
 // GenFunc generates a Manifest using the provided config.
-func GenFunc(config medhash.Config, ignores []string) (errs []error) {
+func GenFunc(config medhash.Config, ignores []string) (manifest *medhash.Manifest, errs []error) {
 	media := make([]medhash.Media, 0)
 
 	err := filepath.Walk(config.Dir, func(path string, info fs.FileInfo, err error) error {
@@ -174,26 +178,31 @@ func GenFunc(config medhash.Config, ignores []string) (errs []error) {
 	}
 
 	if len(media) > 0 {
-		manifest := medhash.NewWithConfig(config)
+		manifest = medhash.NewWithConfig(config)
 		manifest.Media = media
+	}
 
-		manFile, err := json.MarshalIndent(manifest, "", "  ")
-		if err != nil {
-			errs = append(errs, err)
-			return
-		}
+	return
+}
 
-		f, err := os.Create(filepath.Join(config.Dir, medhash.DefaultManifestName))
-		if err != nil {
-			errs = append(errs, err)
-			return
-		}
-		defer f.Close()
+// WriteFunc writes manifest into the Manifest file in config.Dir.
+func WriteFunc(config medhash.Config, manifest *medhash.Manifest) (errs []error) {
+	manFile, err := manifest.JSON()
+	if err != nil {
+		errs = append(errs, err)
+		return
+	}
 
-		_, err = f.Write(manFile)
-		if err != nil {
-			errs = append(errs, err)
-		}
+	f, err := os.Create(filepath.Join(config.Dir, medhash.DefaultManifestName))
+	if err != nil {
+		errs = append(errs, err)
+		return
+	}
+	defer f.Close()
+
+	_, err = f.Write(manFile)
+	if err != nil {
+		errs = append(errs, err)
 	}
 
 	return
