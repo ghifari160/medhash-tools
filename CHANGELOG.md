@@ -7,6 +7,22 @@ All notable changes in MedHash Tools will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project attempts to adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [UNRELEASED]
+
+### Added
+
+### Changed
+
+- Bumped Go version to v1.24.2.
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
 ## [0.6.1] - 2023-08-30
 
 ### Changed
