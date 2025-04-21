@@ -8,8 +8,8 @@ require (
 	github.com/stretchr/objx v0.1.0
 	github.com/stretchr/testify v1.7.0
 	github.com/zeebo/xxh3 v1.0.2
-	golang.org/x/crypto v0.31.0
-	golang.org/x/sys v0.28.0
+	golang.org/x/crypto v0.35.0
+	golang.org/x/sys v0.30.0
 )
 
 require (
