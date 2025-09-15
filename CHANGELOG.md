@@ -13,7 +13,7 @@ This project attempts to adhere to [Semantic Versioning](https://semver.org/spec
 
 ### Changed
 
-- Bumped Go version to v1.24.2.
+- Bumped Go version to v1.25.1.
 
 ### Deprecated
 

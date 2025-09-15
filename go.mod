@@ -1,6 +1,8 @@
 module github.com/ghifari160/medhash-tools
 
-go 1.24.2
+go 1.25
+
+toolchain go1.25.1
 
 require (
 	github.com/alexflint/go-arg v1.4.3
