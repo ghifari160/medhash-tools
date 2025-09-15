@@ -40,6 +40,8 @@ type CmdConfig struct {
 	SHA256 bool `arg:"--sha256" help:"use SHA256"`
 	SHA1   bool `arg:"--sha1" help:"use SHA1"`
 	MD5    bool `arg:"--md5" help:"use MD5"`
+
+	Ed25519 bool `arg:"--ed25519" help:"sign or verify with Ed25519"`
 }
 
 // ConfigDir returns the directory for user configurations.

@@ -15,6 +15,8 @@ type Gen struct {
 	Dirs    []string `arg:"positional"`
 	Ignores []string `arg:"--ignore,-i" help:"ignore patterns"`
 
+	Ed25519Key string `arg:"--ed25519-privkey" help:"Path to Ed25519 private key"`
+
 	CmdConfig
 }
 
@@ -32,6 +34,39 @@ func (g *Gen) Execute() (status int) {
 		config.MD5 = g.MD5
 	} else if g.Default {
 		config = medhash.DefaultConfig
+	}
+
+	if g.Ed25519 {
+		if g.Ed25519Key == "" {
+			confDir, err := ConfigDir()
+			if err != nil {
+				color.Printf("error: %v\n", err)
+				status = 1
+
+				return
+			}
+
+			g.Ed25519Key = filepath.Join(confDir, "ed25519.key")
+		}
+
+		keyStr, err := os.ReadFile(g.Ed25519Key)
+		if err != nil {
+			color.Printf("error: %v\n", err)
+			status = 1
+
+			return
+		}
+
+		privKey, private := medhash.DecodeKey(keyStr)
+		if !private {
+			color.Println("Expected private key. Got public key.")
+			status = 1
+
+			return
+		}
+
+		config.Ed25519.Enabled = true
+		config.Ed25519.PrivateKey = privKey
 	}
 
 	if len(g.Dirs) < 1 {
@@ -68,6 +103,13 @@ func (g *Gen) Execute() (status int) {
 
 		manifest, err := GenFunc(c, g.Ignores)
 		errs = append(errs, err...)
+
+		if g.Ed25519 {
+			signed, err := SignFunc(c, manifest)
+			errs = append(errs, err...)
+
+			manifest = signed
+		}
 
 		errs = append(errs, WriteFunc(c, manifest)...)
 
@@ -180,6 +222,18 @@ func GenFunc(config medhash.Config, ignores []string) (manifest *medhash.Manifes
 	if len(media) > 0 {
 		manifest = medhash.NewWithConfig(config)
 		manifest.Media = media
+	}
+
+	return
+}
+
+// SignFunc signs the manifest.
+func SignFunc(config medhash.Config, manifest *medhash.Manifest) (signed *medhash.Manifest, errs []error) {
+	color.Println("Signing manifest")
+
+	signed, err := medhash.Sign(config, manifest)
+	if err != nil {
+		errs = append(errs, err)
 	}
 
 	return
