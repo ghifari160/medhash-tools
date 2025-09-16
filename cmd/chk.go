@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -92,6 +91,7 @@ func (c *Chk) chk(manPath string, config medhash.Config, files []string) (errs [
 		errs = append(errs, err)
 		return
 	}
+	manifest.Config = config
 
 	for _, med := range manifest.Media {
 		color.Printf("  %s: ", filepath.Join(config.Dir, med.Path))
@@ -120,18 +120,12 @@ func (c *Chk) chk(manPath string, config medhash.Config, files []string) (errs [
 			}
 		}
 
-		valid, err := medhash.ChkHash(config, med)
-		if err == nil && valid {
-			color.Println(MsgStatusOK)
-			continue
-		} else {
-			color.Println(MsgStatusError)
-
-			if err == nil {
-				err = fmt.Errorf("invalid hash for %s", filepath.Join(config.Dir, med.Path))
-			}
-
+		err := manifest.Check(med.Path)
+		if err != nil {
 			errs = append(errs, err)
+			color.Println(MsgStatusError)
+		} else {
+			color.Println(MsgStatusOK)
 		}
 	}
 

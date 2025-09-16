@@ -32,43 +32,30 @@ type Manifest struct {
 	Config Config `json:"-"`
 }
 
-// New creates a new Manifest with the default configuration.
-func New() *Manifest {
+func New() (man *Manifest, err error) {
 	return NewWithConfig(DefaultConfig)
 }
 
-// NewWithConfig creates a new Manifest with the specific configuration.
-func NewWithConfig(config Config) *Manifest {
-	return &Manifest{
+func NewWithConfig(config Config) (man *Manifest, err error) {
+	if config.Manifest == "" {
+		config.Manifest = DefaultManifestName
+	}
+
+	man = &Manifest{
 		Version: ManifestFormatVer,
 		Config:  config,
+		Media:   make([]Media, 0),
 	}
-}
 
-// Media stores metadata about the media.
-type Media struct {
-	Path string `json:"path"`
-	Hash Hash   `json:"hash"`
-}
-
-// Hash stores each hash of a Media.
-type Hash struct {
-	XXH3   string `json:"xxh3,omitempty"`
-	SHA512 string `json:"sha512,omitempty"`
-	SHA256 string `json:"sha256,omitempty"`
-	SHA3   string `json:"sha3,omitempty"`
-	// Deprecated: use SHA3.
-	SHA3_256 string `json:"sha3-256,omitempty"`
-	SHA1     string `json:"sha1,omitempty"`
-	MD5      string `json:"md5,omitempty"`
+	return
 }
 
 // Config configures the hasher.
 type Config struct {
 	// Dir is the path to the target directory.
 	Dir string
-	// Path is the path of the current media.
-	Path string
+	// Manifest is the manifest file name.
+	Manifest string
 
 	// XXH3 toggles the XXH3_64 hash generation.
 	XXH3 bool

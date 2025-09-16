@@ -1,248 +1,97 @@
 package cmd_test
 
 import (
-	"os"
-	"path/filepath"
+	"testing"
 
 	"github.com/ghifari160/medhash-tools/cmd"
 	"github.com/ghifari160/medhash-tools/medhash"
 	"github.com/ghifari160/medhash-tools/testcommon"
-	"github.com/stretchr/objx"
+	"github.com/stretchr/testify/require"
 )
 
-func (s *CmdSuite) TestChk() {
-	dir := s.T().TempDir()
-	payload := testcommon.GenPayload(s.T(), dir, s.PayloadSize)
+func TestChk(t *testing.T) {
+	t.Parallel()
 
-	s.Run("xxh3", func() {
-		testcommon.CreateManifest(s.T(), dir, payload, medhash.ManifestFormatVer, medhash.Config{
-			XXH3: true,
-		})
-		s.T().Cleanup(func() {
-			err := os.Remove(filepath.Join(dir, medhash.DefaultManifestName))
-			s.Require().NoError(err)
-		})
+	cases := []testcommon.TestCase{
+		testcommon.Case("xxh3", "xxh3"),
+		testcommon.Case("sha512", "sha512"),
+		testcommon.Case("sha3", "sha3"),
+		testcommon.Case("sha256", "sha256"),
+		testcommon.Case("sha1", "sha1"),
+		testcommon.Case("md5", "md5"),
 
-		c := new(cmd.Chk)
-		c.Dirs = []string{dir}
-		c.Default = true
+		testcommon.Case("all", "all"),
+		testcommon.Case("default/default", "default"),
+		testcommon.Case("default/invalid", "default", withInvalidate(true)),
+		testcommon.Case("default/file_list/skip", "default", withFiles([]string{"payload2"})),
+		testcommon.Case("default/file_list/include", "default", withFiles([]string{"payload"})),
+	}
+
+	testcommon.RunCases(t, testChk, cases)
+}
+
+func testChk(t *testing.T, alg string, opts ...testcommon.Options) {
+	t.Parallel()
+
+	require := require.New(t)
+	dir := t.TempDir()
+	payload := testcommon.GenPayload(t, dir, testcommon.PayloadSize())
+
+	options := testcommon.MergeOptions(opts...)
+	invalidate := options.Bool("invalidate")
+	files := options.StrSlice("files")
+
+	c := new(cmd.Chk)
+	c.Dirs = []string{dir}
+	if len(files) > 0 {
+		c.Files = files
+	}
+	var conf medhash.Config
+
+	switch alg {
+	case "xxh3":
 		c.XXH3 = true
-
-		status := c.Execute()
-		s.Require().Zero(status)
-
-		config := medhash.Config{
-			XXH3: true,
-		}
-
-		testcommon.VerifyManifest(s.T(), dir, config, payload.Hash)
-	})
-
-	s.Run("sha512", func() {
-		testcommon.CreateManifest(s.T(), dir, payload, medhash.ManifestFormatVer, medhash.Config{
-			SHA3: true,
-		})
-		s.T().Cleanup(func() {
-			err := os.Remove(filepath.Join(dir, medhash.DefaultManifestName))
-			s.Require().NoError(err)
-		})
-
-		c := new(cmd.Chk)
-		c.Dirs = []string{dir}
-		c.Default = true
+		conf.XXH3 = true
+	case "sha512":
 		c.SHA512 = true
-
-		status := c.Execute()
-		s.Require().Zero(status)
-
-		config := medhash.Config{
-			SHA512: true,
-		}
-
-		testcommon.VerifyManifest(s.T(), dir, config, payload.Hash)
-	})
-
-	s.Run("sha3", func() {
-		testcommon.CreateManifest(s.T(), dir, payload, medhash.ManifestFormatVer, medhash.Config{
-			SHA3: true,
-		})
-		s.T().Cleanup(func() {
-			err := os.Remove(filepath.Join(dir, medhash.DefaultManifestName))
-			s.Require().NoError(err)
-		})
-
-		c := new(cmd.Chk)
-		c.Dirs = []string{dir}
-		c.Default = true
+		conf.SHA512 = true
+	case "sha3":
 		c.SHA3 = true
-
-		status := c.Execute()
-		s.Require().Zero(status)
-
-		config := medhash.Config{
-			SHA3: true,
-		}
-
-		testcommon.VerifyManifest(s.T(), dir, config, payload.Hash)
-	})
-
-	s.Run("sha256", func() {
-		testcommon.CreateManifest(s.T(), dir, payload, medhash.ManifestFormatVer, medhash.Config{
-			SHA256: true,
-		})
-		s.T().Cleanup(func() {
-			err := os.Remove(filepath.Join(dir, medhash.DefaultManifestName))
-			s.Require().NoError(err)
-		})
-
-		c := new(cmd.Chk)
-		c.Dirs = []string{dir}
-		c.Default = true
+		conf.SHA3 = true
+	case "sha256":
 		c.SHA256 = true
-
-		status := c.Execute()
-		s.Require().Zero(status)
-
-		config := medhash.Config{
-			SHA256: true,
-		}
-
-		testcommon.VerifyManifest(s.T(), dir, config, payload.Hash)
-	})
-
-	s.Run("sha1", func() {
-		testcommon.CreateManifest(s.T(), dir, payload, medhash.ManifestFormatVer, medhash.Config{
-			SHA1: true,
-		})
-		s.T().Cleanup(func() {
-			err := os.Remove(filepath.Join(dir, medhash.DefaultManifestName))
-			s.Require().NoError(err)
-		})
-
-		c := new(cmd.Chk)
-		c.Dirs = []string{dir}
-		c.Default = true
+		conf.SHA256 = true
+	case "sha1":
 		c.SHA1 = true
-
-		status := c.Execute()
-		s.Require().Zero(status)
-
-		config := medhash.Config{
-			SHA1: true,
-		}
-
-		testcommon.VerifyManifest(s.T(), dir, config, payload.Hash)
-	})
-
-	s.Run("md5", func() {
-		testcommon.CreateManifest(s.T(), dir, payload, medhash.ManifestFormatVer, medhash.Config{
-			MD5: true,
-		})
-		s.T().Cleanup(func() {
-			err := os.Remove(filepath.Join(dir, medhash.DefaultManifestName))
-			s.Require().NoError(err)
-		})
-
-		c := new(cmd.Chk)
-		c.Dirs = []string{dir}
-		c.Default = true
+		conf.SHA1 = true
+	case "md5":
 		c.MD5 = true
-
-		status := c.Execute()
-		s.Require().Zero(status)
-
-		config := medhash.Config{
-			MD5: true,
-		}
-
-		testcommon.VerifyManifest(s.T(), dir, config, payload.Hash)
-	})
-
-	s.Run("all", func() {
-		testcommon.CreateManifest(s.T(), dir, payload, medhash.ManifestFormatVer,
-			medhash.AllConfig)
-		s.T().Cleanup(func() {
-			err := os.Remove(filepath.Join(dir, medhash.DefaultManifestName))
-			s.Require().NoError(err)
-		})
-
-		c := new(cmd.Chk)
-		c.Dirs = []string{dir}
-		c.Default = true
+		conf.MD5 = true
+	case "all":
 		c.All = true
-
-		status := c.Execute()
-		s.Require().Zero(status)
-
-		testcommon.VerifyManifest(s.T(), dir, medhash.AllConfig, payload.Hash)
-	})
-
-	s.Run("default", func() {
-		testcommon.CreateManifest(s.T(), dir, payload, medhash.ManifestFormatVer,
-			medhash.DefaultConfig)
-		s.T().Cleanup(func() {
-			err := os.Remove(filepath.Join(dir, medhash.DefaultManifestName))
-			s.Require().NoError(err)
-		})
-
-		c := new(cmd.Chk)
-		c.Dirs = []string{dir}
+		conf = medhash.AllConfig
+	default:
 		c.Default = true
+		conf = medhash.DefaultConfig
+	}
+	conf.Dir = dir
+	conf.Manifest = medhash.DefaultManifestName
 
-		status := c.Execute()
-		s.Require().Zero(status)
+	if invalidate {
+		payload.Hash.XXH3 = "__INVALID__"
+		payload.Hash.SHA512 = "__INVALID__"
+		payload.Hash.SHA3 = "__INVALID__"
+		payload.Hash.SHA3_256 = "__INVALID__"
+		payload.Hash.SHA256 = "__INVALID__"
+		payload.Hash.SHA1 = "__INVALID__"
+		payload.Hash.MD5 = "__INVALID__"
+	}
 
-		testcommon.VerifyManifest(s.T(), dir, medhash.DefaultConfig, payload.Hash)
-	})
+	testcommon.CreateManifest(t, conf, payload, medhash.ManifestFormatVer)
 
-	s.Run("manifest_path", func() {
-		testcommon.CreateManifest(s.T(), dir, payload, medhash.ManifestFormatVer,
-			medhash.DefaultConfig)
-		err := os.Rename(filepath.Join(dir, medhash.DefaultManifestName),
-			filepath.Join(dir, "manifest.json"))
-		s.Require().NoError(err)
-		s.T().Cleanup(func() {
-			err := os.Remove(filepath.Join(dir, "manifest.json"))
-			s.Require().NoError(err)
-		})
-
-		c := new(cmd.Chk)
-		c.Dirs = []string{dir}
-		c.Default = true
-		c.Manifest = filepath.Join(dir, "manifest.json")
-
-		status := c.Execute()
-		s.Require().Zero(status)
-
-		config := medhash.DefaultConfig
-
-		manFile, err := os.ReadFile(filepath.Join(dir, "manifest.json"))
-		s.Require().NoError(err)
-
-		manifest, err := objx.FromJSON(string(manFile))
-		s.Require().NoError(err)
-
-		s.Require().Equal(medhash.ManifestFormatVer, manifest.Get("version").Str())
-
-		if config.SHA512 {
-			s.Equal(payload.Hash.SHA512, manifest.Get("media[0].hash.sha512").Str())
-		}
-
-		if config.SHA3 {
-			s.Equal(payload.Hash.SHA3, manifest.Get("media[0].hash.sha3").Str())
-			s.Equal(payload.Hash.SHA3_256, manifest.Get("media[0].hash.sha3-256").Str())
-		}
-
-		if config.SHA256 {
-			s.Equal(payload.Hash.SHA256, manifest.Get("media[0].hash.sha256").Str())
-		}
-
-		if config.SHA1 {
-			s.Equal(payload.Hash.SHA1, manifest.Get("media[0].hash.sha1").Str())
-		}
-
-		if config.MD5 {
-			s.Equal(payload.Hash.MD5, manifest.Get("media[0].hash.md5").Str())
-		}
-	})
+	if !invalidate {
+		require.Zero(c.Execute())
+	} else {
+		require.NotZero(c.Execute())
+	}
 }

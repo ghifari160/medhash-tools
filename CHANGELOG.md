@@ -14,6 +14,8 @@ This project attempts to adhere to [Semantic Versioning](https://semver.org/spec
 ### Changed
 
 - Bumped Go version to v1.25.1.
+- Bumped `gopkg.in/yaml.v3` to v3.0.1.
+- Rewrote `medhash` library. Hashing is now done at the library level and when a new media is added, as configured when initiating a Manifest.
 
 ### Deprecated
 

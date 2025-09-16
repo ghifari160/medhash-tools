@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -84,9 +83,12 @@ func (g *Gen) Execute() (status int) {
 
 // GenFunc generates a Manifest using the provided config.
 func GenFunc(config medhash.Config, ignores []string) (errs []error) {
-	media := make([]medhash.Media, 0)
+	manifest, err := medhash.NewWithConfig(config)
+	if err != nil {
+		errs = []error{err}
+	}
 
-	err := filepath.Walk(config.Dir, func(path string, info fs.FileInfo, err error) error {
+	err = filepath.Walk(config.Dir, func(path string, info fs.FileInfo, err error) error {
 		if !info.Mode().IsRegular() {
 			return nil
 		}
@@ -127,18 +129,13 @@ func GenFunc(config medhash.Config, ignores []string) (errs []error) {
 			}
 		}
 
-		c.Path = rel
-
-		med, err := medhash.GenHash(c)
+		err = manifest.Add(rel)
 		if err != nil {
 			color.Println(MsgStatusError)
 			errs = append(errs, err)
-
-			return nil
+		} else {
+			color.Println(MsgStatusOK)
 		}
-
-		color.Println(MsgStatusOK)
-		media = append(media, med)
 
 		return nil
 	})
@@ -148,52 +145,36 @@ func GenFunc(config medhash.Config, ignores []string) (errs []error) {
 
 	color.Println("Sanity checking files")
 
-	for i, med := range media {
+	for _, med := range manifest.Media {
 		c := config
 
 		color.Printf("  %s: ", (filepath.Join(c.Dir, med.Path)))
 
-		valid, err := medhash.ChkHash(c, med)
-		if err == nil && valid {
-			color.Println(MsgStatusOK)
-
-			continue
-		} else if err == nil && !valid {
-			color.Println(MsgStatusError)
-			errs = append(errs, fmt.Errorf("invalid hash for %s", med.Path))
-		} else {
-			color.Println(MsgStatusError)
+		err := manifest.Check(med.Path)
+		if err != nil {
 			errs = append(errs, err)
+			color.Println(MsgStatusError)
+		} else {
+			color.Println(MsgStatusOK)
 		}
-
-		m := media[:i]
-		if i+1 < len(media) {
-			m = append(m, media[i+1:]...)
-		}
-		media = m
 	}
 
-	if len(media) > 0 {
-		manifest := medhash.NewWithConfig(config)
-		manifest.Media = media
+	manFile, err := json.MarshalIndent(manifest, "", "  ")
+	if err != nil {
+		errs = append(errs, err)
+		return
+	}
 
-		manFile, err := json.MarshalIndent(manifest, "", "  ")
-		if err != nil {
-			errs = append(errs, err)
-			return
-		}
+	f, err := os.Create(filepath.Join(config.Dir, medhash.DefaultManifestName))
+	if err != nil {
+		errs = append(errs, err)
+		return
+	}
+	defer f.Close()
 
-		f, err := os.Create(filepath.Join(config.Dir, medhash.DefaultManifestName))
-		if err != nil {
-			errs = append(errs, err)
-			return
-		}
-		defer f.Close()
-
-		_, err = f.Write(manFile)
-		if err != nil {
-			errs = append(errs, err)
-		}
+	_, err = f.Write(manFile)
+	if err != nil {
+		errs = append(errs, err)
 	}
 
 	return

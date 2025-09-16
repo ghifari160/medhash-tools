@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/ghifari160/medhash-tools/color"
 	"github.com/ghifari160/medhash-tools/medhash"
 	"github.com/stretchr/objx"
 )
+
+// CurrentSpec is the most current Specification implemented.
+const CurrentSpec = "0.5.0"
 
 // Upgrade subcommand upgrades legacy Manifest to the current spec version.
 type Upgrade struct {
@@ -115,15 +116,19 @@ func (u *Upgrade) v010(genConfig medhash.Config) (errs []error) {
 		errs = append(errs, err)
 		return
 	}
+	u.Ignores = append(u.Ignores, "sums.txt")
 
 	legacyMan := strings.Split(string(legacy), "\n")
+
+	manifest := &medhash.Manifest{
+		Media: make([]medhash.Media, 0),
+	}
+	manifest.Config = chkConfig
 
 	color.Printf("Checking legacy Manifest for %s\n", genConfig.Dir)
 
 	chkErrs := make([]error, 0)
 	for i, med := range legacyMan {
-		cc := chkConfig
-
 		m := strings.Fields(med)
 
 		if len(m) < 1 {
@@ -140,15 +145,19 @@ func (u *Upgrade) v010(genConfig medhash.Config) (errs []error) {
 				SHA256: m[1],
 			},
 		}
-
-		err = chkMedia(cc, newMed)
-		if err != nil {
-			errs = append(errs, err)
-
-			continue
-		}
+		manifest.Media = append(manifest.Media, newMed)
 	}
 
+	for _, med := range manifest.Media {
+		color.Printf("  %s: ", med.Path)
+		err := manifest.Check(med.Path)
+		if err != nil {
+			chkErrs = append(chkErrs, err)
+			color.Println(MsgStatusError)
+		} else {
+			color.Println(MsgStatusOK)
+		}
+	}
 	errs = append(errs, chkErrs...)
 	if len(chkErrs) > 0 {
 		return
@@ -178,20 +187,20 @@ func (u *Upgrade) upgradeJSON(config medhash.Config) (errs []error) {
 
 	ver := legacy.Get("version").Str()
 
-	switch breakoutSemver(ver) {
-	case [3]int{0, 2, 0}:
+	switch ver {
+	case "0.2.0":
 		color.Println("Manifest v0.2.0 detected!")
 		errs = append(errs, u.upgradeV020(config, legacy)...)
 
-	case [3]int{0, 3, 0}:
+	case "0.3.0":
 		color.Println("Manifest v0.3.0 detected!")
 		errs = append(errs, u.upgradeV030(config, legacy)...)
 
-	case [3]int{0, 4, 0}:
+	case "0.4.0":
 		color.Println("Manifest v0.4.0 detected!")
 		errs = append(errs, u.upgradeV040(config, legacy)...)
 
-	case [3]int{0, 5, 0}:
+	case "0.5.0":
 		color.Println("Manifest v0.5.0 detected!")
 		errs = append(errs, u.upgradeV050(config, legacy)...)
 
@@ -221,15 +230,15 @@ func (u *Upgrade) upgradeV020(genConfig medhash.Config, legacy objx.Map) (errs [
 
 	color.Printf("Checking legacy manifest for %s\n", genConfig.Dir)
 
-	if ver := legacy.Get("version").Str(); ver == "" || breakoutSemver(ver) != [3]int{0, 2, 0} {
+	if ver := legacy.Get("version").Str(); ver == "" || ver != "0.2.0" {
 		errs = append(errs, fmt.Errorf("unexpected version: %v", legacy.Get("version").Data()))
 		return
 	}
 
-	media, e := mapToMedia(legacy.Get("media"))
+	manifest, e := mapToManifest(legacy.Get("media"))
 	errs = append(errs, e...)
-
-	errs = append(errs, chkMediaSlice(chkConfig, media)...)
+	manifest.Config = chkConfig
+	errs = append(errs, chkManifest(manifest)...)
 
 	return
 }
@@ -246,15 +255,15 @@ func (u *Upgrade) upgradeV030(genConfig medhash.Config, legacy objx.Map) (errs [
 
 	color.Printf("Checking legacy manifest for %s\n", genConfig.Dir)
 
-	if ver := legacy.Get("version").Str(); ver == "" || breakoutSemver(ver) != [3]int{0, 3, 0} {
+	if ver := legacy.Get("version").Str(); ver == "" || ver != "0.3.0" {
 		errs = append(errs, fmt.Errorf("unexpected version: %v", legacy.Get("version").Data()))
 		return
 	}
 
-	media, e := mapToMedia(legacy.Get("media"))
+	manifest, e := mapToManifest(legacy.Get("media"))
 	errs = append(errs, e...)
-
-	errs = append(errs, chkMediaSlice(chkConfig, media)...)
+	manifest.Config = chkConfig
+	errs = append(errs, chkManifest(manifest)...)
 
 	return
 }
@@ -264,15 +273,15 @@ func (u *Upgrade) upgradeV040(genConfig medhash.Config, legacy objx.Map) (errs [
 	chkConfig := medhash.AllConfig
 	chkConfig.Dir = genConfig.Dir
 
-	if ver := legacy.Get("version").Str(); ver == "" || breakoutSemver(ver) != [3]int{0, 4, 0} {
+	if ver := legacy.Get("version").Str(); ver == "" || ver != "0.4.0" {
 		errs = append(errs, fmt.Errorf("unexpected version: %v", legacy.Get("version").Data()))
 		return
 	}
 
-	media, e := mapToMedia(legacy.Get("media"))
+	manifest, e := mapToManifest(legacy.Get("media"))
 	errs = append(errs, e...)
-
-	errs = append(errs, chkMediaSlice(chkConfig, media)...)
+	manifest.Config = chkConfig
+	errs = append(errs, chkManifest(manifest)...)
 
 	return
 }
@@ -286,7 +295,7 @@ func (u *Upgrade) upgradeV050(genConfig medhash.Config, legacy objx.Map) (errs [
 	chkConfig := medhash.AllConfig
 	chkConfig.Dir = genConfig.Dir
 
-	if ver := legacy.Get("version").Str(); ver == "" || breakoutSemver(ver) != [3]int{0, 5, 0} {
+	if ver := legacy.Get("version").Str(); ver == "" || ver != "0.5.0" {
 		errs = append(errs, fmt.Errorf("unexpected version: %v", legacy.Get("version").Data()))
 		return
 	}
@@ -298,166 +307,118 @@ func (u *Upgrade) upgradeV050(genConfig medhash.Config, legacy objx.Map) (errs [
 
 	color.Printf("Forced to regenerate Manifest v0.5.0 for %s!\n", genConfig.Dir)
 
-	media, e := mapToMedia(legacy.Get("media"))
+	manifest, e := mapToManifest(legacy.Get("media"))
 	errs = append(errs, e...)
-
-	errs = append(errs, chkMediaSlice(chkConfig, media)...)
+	manifest.Config = chkConfig
+	errs = append(errs, chkManifest(manifest)...)
 
 	return
 }
 
-// mapToMedia converts an objx.Value to medhash.Media slice.
-func mapToMedia(legacyMed *objx.Value) (media []medhash.Media, errs []error) {
+// mapToManifest builds a medhash.Manifest from a JSON map.
+func mapToManifest(legacyMed *objx.Value) (manifest *medhash.Manifest, errs []error) {
 	if !legacyMed.IsInterSlice() {
 		errs = append(errs, fmt.Errorf("invalid media array: %v", legacyMed.Data()))
 		return
 	}
 
 	legacy := legacyMed.InterSlice()
-	media = make([]medhash.Media, len(legacy))
+	manifest = &medhash.Manifest{
+		Media: make([]medhash.Media, len(legacy)),
+	}
 
 	for i, medInter := range legacy {
-		msi, v := medInter.(map[string]interface{})
+		msi, v := medInter.(map[string]any)
 		if !v {
 			errs = append(errs, fmt.Errorf("unknown media %d: %T %v", i, medInter, medInter))
 			continue
 		}
-
 		med := objx.Map(msi)
 
-		m := medhash.Media{}
-
+		media := medhash.Media{}
 		if path := med.Get("path").Str(); path == "" {
 			errs = append(errs, fmt.Errorf("unexpected path for media %d: %v",
 				i, med.Get("path").Data()))
-
 			continue
 		} else {
-			m.Path = path
+			media.Path = path
 		}
 
-		if !med.Get("hash.sha3-256").IsStr() && !med.Get("hash.sha3-256").IsNil() {
-			errs = append(errs, fmt.Errorf("unexpected sha3 for media %d: %v",
-				i, med.Get("hash.sha3-256").Data()))
-
+		if !med.Get("hash.xxh3").IsStr() && !med.Get("hash.xxh3").IsNil() {
+			errs = append(errs, hashErr{"xxh3", i, med.Get("hash.xxh3").Data()})
 			continue
 		} else {
-			m.Hash.SHA3_256 = med.Get("hash.sha3-256").Str()
+			media.Hash.XXH3 = med.Get("hash.xxh3").Str()
+		}
+
+		if !med.Get("hash.sha512").IsStr() && !med.Get("hash.sha512").IsNil() {
+			errs = append(errs, hashErr{"sha512", i, med.Get("hash.sha512").Data()})
+			continue
+		} else {
+			media.Hash.SHA512 = med.Get("hash.sha512").Str()
+		}
+
+		if !med.Get("hash.sha3").IsStr() && !med.Get("hash.sha3").IsNil() {
+			errs = append(errs, hashErr{"sha3", i, med.Get("hash.sha3").Data()})
+			continue
+		} else {
+			media.Hash.SHA3 = med.Get("hash.sha3").Str()
+		}
+		if !med.Get("hash.sha3-256").IsStr() && !med.Get("hash.sha3-256").IsNil() {
+			errs = append(errs, hashErr{"sha3-256", i, med.Get("hash.sha3-256").Data()})
+			continue
+		} else {
+			media.Hash.SHA3_256 = med.Get("hash.sha3-256").Str()
 		}
 
 		if !med.Get("hash.sha256").IsStr() && !med.Get("hash.sha256").IsNil() {
-			errs = append(errs, fmt.Errorf("unexpected sha256 for media %d: %v",
-				i, med.Get("hash.sha256").Data()))
-
+			errs = append(errs, hashErr{"sha256", i, med.Get("hash.sha256").Data()})
 			continue
 		} else {
-			m.Hash.SHA256 = med.Get("hash.sha256").Str()
+			media.Hash.SHA256 = med.Get("hash.sha256").Str()
 		}
 
 		if !med.Get("hash.sha1").IsStr() && !med.Get("hash.sha1").IsNil() {
-			errs = append(errs, fmt.Errorf("unexpected sha1 for media %d: %v",
-				i, med.Get("hash.sha1").Data()))
-
+			errs = append(errs, hashErr{"sha1", i, med.Get("hash.sha1").Data()})
 			continue
 		} else {
-			m.Hash.SHA1 = med.Get("hash.sha1").Str()
+			media.Hash.SHA1 = med.Get("hash.sha1").Str()
 		}
 
 		if !med.Get("hash.md5").IsStr() && !med.Get("hash.md5").IsNil() {
-			errs = append(errs, fmt.Errorf("unexpected md5 for media %d: %v",
-				i, med.Get("hash.md5").Data()))
-
+			errs = append(errs, hashErr{"md5", i, med.Get("hash.md5").Data()})
 			continue
 		} else {
-			m.Hash.MD5 = med.Get("hash.md5").Str()
+			media.Hash.MD5 = med.Get("hash.md5").Str()
 		}
 
-		media[i] = m
+		manifest.Media[i] = media
 	}
-
 	return
 }
 
-// chkMediaSlice verifies the Hashes for all Media in the provided slice.
-func chkMediaSlice(config medhash.Config, media []medhash.Media) (errs []error) {
-	for _, med := range media {
-		err := chkMedia(config, med)
+// hashErr is an error type for invalid hash values.
+type hashErr struct {
+	alg   string
+	index int
+	data  any
+}
+
+func (err hashErr) Error() string {
+	return fmt.Sprintf("unexpected %s for media %d: %v", err.alg, err.index, err.data)
+}
+
+// chkManifest verifies the Hashes for all Media in the provided manifest.
+func chkManifest(manifest *medhash.Manifest) (errs []error) {
+	for _, media := range manifest.Media {
+		color.Printf("  %s: ", filepath.Join(manifest.Config.Dir, media.Path))
+		err := manifest.Check(media.Path)
 		if err != nil {
 			errs = append(errs, err)
-
-			continue
-		}
-	}
-
-	return
-}
-
-// chkMedia verifies Hashes for the Media.
-func chkMedia(config medhash.Config, media medhash.Media) (err error) {
-	color.Printf("  %s: ", filepath.Join(config.Dir, media.Path))
-
-	valid, err := medhash.ChkHash(config, media)
-	if err != nil {
-		color.Println(MsgStatusError)
-
-		return
-	} else if !valid {
-		color.Println(MsgStatusError)
-		err = fmt.Errorf("invalid hash for %s", filepath.Join(config.Dir, media.Path))
-
-		return
-	}
-
-	color.Println(MsgStatusOK)
-
-	return
-}
-
-// compareSemver compares two SemVer strings.
-// It returns 1 if a > b, -1 if a < b, and 0 if a == b.
-func compareSemver(a, b string) int {
-	aInt := breakoutSemver(a)
-	bInt := breakoutSemver(b)
-
-	if aInt[0] > bInt[0] {
-		return 1
-	} else if aInt[0] < bInt[0] {
-		return -1
-	} else {
-		if aInt[1] > bInt[1] {
-			return 1
-		} else if aInt[1] < bInt[1] {
-			return -1
+			color.Println(MsgStatusError)
 		} else {
-			if aInt[2] > bInt[2] {
-				return 1
-			} else if aInt[2] < bInt[2] {
-				return -1
-			} else {
-				return 0
-			}
+			color.Println(MsgStatusOK)
 		}
 	}
-}
-
-// breakoutSemver parses a SemVer string into an int array.
-func breakoutSemver(semver string) (ver [3]int) {
-	pattern := regexp.MustCompile(`(?:v{0,1})([0-9]*)(?:\.{0,1})([0-9]*)(?:\.{0,1})([0-9]*)`)
-
-	verStr := make([]string, 3)
-
-	verStr[0] = pattern.ReplaceAllString(semver, "$1")
-	verStr[1] = pattern.ReplaceAllString(semver, "$2")
-	verStr[2] = pattern.ReplaceAllString(semver, "$3")
-
-	for i, str := range verStr {
-		var err error
-
-		ver[i], err = strconv.Atoi(str)
-		if err != nil {
-			ver[i] = 0
-		}
-	}
-
 	return
 }
