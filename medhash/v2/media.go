@@ -41,29 +41,31 @@ func (man *Manifest) Check(media string) error {
 	return nil
 }
 
+// sortMedia sorts man.Media.
+// Sorting is done with a stable sorting algorithm, meaning that insertion order is preserved for
+// equal elements.
+// sortMedia abstracts the actual implementation detail, allowing us to change or otherwise modify
+// the implementation in the future without breaking compatibility.
 func (man *Manifest) sortMedia() {
 	slices.SortStableFunc(man.Media, mediaCmp)
 }
 
+// searchMedia searches for media in man.Media using binary search.
+// man.Media must be sorted for binary search to work (see sortMedia).
+// searchMedia abstracts the actual implementation detail of the searching logic, allowing us to
+// change or otherwise modify the implementation in the future without breaking compatibility.
 func (man *Manifest) searchMedia(media string) (med Media, err error) {
-	const errMsg = "media %s not in manifest"
-
-	if !slices.ContainsFunc(man.Media, func(e Media) bool {
-		return e.Path == media
-	}) {
-		err = fmt.Errorf(errMsg, media)
+	target := Media{Path: media}
+	index, found := slices.BinarySearchFunc(man.Media, target, mediaCmp)
+	if !found {
+		err = fmt.Errorf("media %s not in manifest", media)
 	} else {
-		target := Media{Path: media}
-		index, found := slices.BinarySearchFunc(man.Media, target, mediaCmp)
-		if !found {
-			err = fmt.Errorf(errMsg, media)
-		} else {
-			med = man.Media[index]
-		}
+		med = man.Media[index]
 	}
 	return
 }
 
+// mediaCmp compares a.Path and b.Path.
 func mediaCmp(a, b Media) int {
 	return strings.Compare(a.Path, b.Path)
 }
