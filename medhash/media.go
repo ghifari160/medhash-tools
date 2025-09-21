@@ -2,6 +2,7 @@ package medhash
 
 import (
 	"fmt"
+	"path/filepath"
 	"slices"
 	"strings"
 )
@@ -10,6 +11,12 @@ import (
 type Media struct {
 	Path string `json:"path"`
 	Hash Hash   `json:"hash"`
+}
+
+// Check checks hashes for media.
+// Hashes for the media are verified at the same time.
+func (media Media) Check(config Config) error {
+	return mediaErrOrNil(config, media, chkHash(config, media))
 }
 
 // Add adds media to man and generates the appropriate hashes as configured.
@@ -33,12 +40,7 @@ func (man *Manifest) Check(media string) error {
 	if err != nil {
 		return err
 	}
-
-	err = chkHash(man.Config, med)
-	if err != nil {
-		return err
-	}
-	return nil
+	return med.Check(man.Config)
 }
 
 // sortMedia sorts man.Media.
@@ -68,6 +70,30 @@ func (man *Manifest) searchMedia(media string) (med Media, err error) {
 // mediaCmp compares a.Path and b.Path.
 func mediaCmp(a, b Media) int {
 	return strings.Compare(a.Path, b.Path)
+}
+
+// mediaErr wraps any error for a Media.
+type mediaErr struct {
+	path string
+	err  error
+}
+
+func (err mediaErr) Error() string {
+	return err.path + ": " + err.err.Error()
+}
+
+func (err mediaErr) Unwrap() error {
+	return err.err
+}
+
+// mediaErrOrNil wraps err with mediaErr, ignoring nil err.
+// That is, mediaErrOrNil returns nil if err is nil.
+func mediaErrOrNil(config Config, media Media, err error) error {
+	if err == nil {
+		return nil
+	} else {
+		return mediaErr{path: filepath.Join(config.Dir, media.Path), err: err}
+	}
 }
 
 // Hash stores each hash of a Media.

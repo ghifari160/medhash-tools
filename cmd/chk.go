@@ -120,7 +120,7 @@ func (c *Chk) chk(manPath string, config medhash.Config, files []string) (errs [
 			}
 		}
 
-		err := manifest.Check(med.Path)
+		err := med.Check(manifest.Config)
 		if err != nil {
 			errs = append(errs, err)
 			color.Println(MsgStatusError)
