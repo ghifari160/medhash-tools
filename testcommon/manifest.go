@@ -1,6 +1,8 @@
 package testcommon
 
 import (
+	"crypto/ed25519"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -60,6 +62,20 @@ func CreateManifest(t testing.TB, config medhash.Config, payload medhash.Media, 
 	manifest.Version = ver
 	manifest.Generator = "MedHash Tools Test"
 	manifest.Media = []medhash.Media{payload}
+
+	if config.Ed25519.Enabled {
+		if config.Ed25519.PrivKey == nil {
+			t.Fatalf("Ed25519.Enabled is true but no valid PrivKey found")
+		}
+
+		payload, err := manifest.JSON()
+		require.NoError(err)
+
+		require.NotPanics(func() {
+			signature := ed25519.Sign(config.Ed25519.PrivKey, payload)
+			manifest.Signature.Ed25519 = hex.EncodeToString(signature)
+		})
+	}
 
 	require.NoError(storeManifest(manifest, manifestPath))
 	require.FileExists(manifestPath)
@@ -147,6 +163,7 @@ func storeManifest(manifest *medhash.Manifest, path string) (err error) {
 		return
 	}
 	defer f.Close()
-	err = json.NewEncoder(f).Encode(manifest)
+	err = manifest.JSONStream(f)
+
 	return
 }

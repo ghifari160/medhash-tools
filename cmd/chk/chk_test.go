@@ -24,6 +24,7 @@ func TestChk(t *testing.T) {
 
 		testcommon.Case("all", "all"),
 		testcommon.Case("default/default", "default"),
+		testcommon.Case("default/signed", "default", withEd25519()),
 		testcommon.Case("default/invalid", "default", withInvalidate(true)),
 		testcommon.Case("default/file_list/skip", "default", withFiles([]string{"payload2"})),
 		testcommon.Case("default/file_list/include", "default", withFiles([]string{"payload"})),
@@ -90,6 +91,15 @@ func testChk(t *testing.T, alg string, opts ...testcommon.Options) {
 		conf = medhash.DefaultConfig
 		arguments[1] = "--default"
 	}
+
+	if options.Bool("ed25519") {
+		pubPath, privPath := testcommon.GenEd25519Keypair(t)
+		conf.Ed25519.Enabled = true
+		conf.Ed25519.PrivKey = testcommon.LoadKey(t, privPath)
+		conf.Ed25519.PubKey = testcommon.LoadKey(t, pubPath)
+		arguments = append(arguments, "--ed25519", pubPath)
+	}
+
 	conf.Dir = dir
 	conf.Manifest = medhash.DefaultManifestName
 	arguments = append(arguments, dir)
@@ -123,4 +133,9 @@ func withInvalidate(invalidate bool) testcommon.Options {
 // withFiles specifies the Files argument to a command for testing.
 func withFiles(files []string) testcommon.Options {
 	return testcommon.NewOptions("files", files)
+}
+
+// withEd25519 flags the test to generate and verify a signed Manifest.
+func withEd25519() testcommon.Options {
+	return testcommon.NewOptions("ed25519", true)
 }

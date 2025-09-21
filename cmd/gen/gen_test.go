@@ -21,7 +21,8 @@ func TestGen(t *testing.T) {
 		testcommon.Case("sha1", "sha1"),
 		testcommon.Case("md5", "md5"),
 
-		testcommon.Case("default", "default"),
+		testcommon.Case("default/default", "default"),
+		testcommon.Case("default/signed", "default", withEd25519()),
 		testcommon.Case("all", "all"),
 	}
 
@@ -35,12 +36,13 @@ func testGen(t *testing.T, alg string, opts ...testcommon.Options) {
 	dir := t.TempDir()
 	payload := testcommon.GenPayload(t, dir, testcommon.PayloadSize())
 
+	options := testcommon.MergeOptions(opts...)
+
 	command := gen.CommandGen()
 	var conf medhash.Config
 
-	arguments := make([]string, 3)
+	arguments := make([]string, 2)
 	arguments[0] = "gen"
-	arguments[2] = dir
 
 	switch alg {
 	case "xxh3":
@@ -68,11 +70,24 @@ func testGen(t *testing.T, alg string, opts ...testcommon.Options) {
 		conf = medhash.DefaultConfig
 		arguments[1] = "--default"
 	}
+
+	if options.Bool("ed25519") {
+		pubPath, privPath := testcommon.GenEd25519Keypair(t)
+		conf.Ed25519.Enabled = true
+		conf.Ed25519.PubKey = testcommon.LoadKey(t, pubPath)
+		arguments = append(arguments, "--ed25519", privPath)
+	}
+
 	conf.Dir = dir
 	conf.Manifest = medhash.DefaultManifestName
+	arguments = append(arguments, dir)
 
 	err := command.Run(t.Context(), arguments)
 	require.NoError(err)
 	require.FileExists(filepath.Join(dir, conf.Manifest))
 	testcommon.VerifyManifest(t, conf, payload.Hash)
+}
+
+func withEd25519() testcommon.Options {
+	return testcommon.NewOptions("ed25519", true)
 }

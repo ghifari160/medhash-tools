@@ -32,6 +32,10 @@ func CommandChk() *cli.Command {
 				Aliases: []string{"m"},
 				Usage:   "use this manifest",
 			},
+			&cli.StringFlag{
+				Name:  "ed25519",
+				Usage: "verify the Manifest Ed25519 signature with this public key",
+			},
 		},
 		MutuallyExclusiveFlags: []cli.MutuallyExclusiveFlags{
 			{
@@ -59,6 +63,15 @@ func CommandChk() *cli.Command {
 
 func ChkAction(ctx context.Context, command *cli.Command) error {
 	config := cmd.ConfigFromFlags(command)
+
+	if command.IsSet("ed25519") {
+		key, err := cmd.Loader(command.String("ed25519"), "ED25519 PUBLIC KEY")
+		if err != nil {
+			return cmd.FinalizeAction(err)
+		}
+		config.Ed25519.Enabled = true
+		config.Ed25519.PubKey = key
+	}
 
 	dirs := command.Args().Slice()
 	if len(dirs) < 1 {
@@ -106,6 +119,19 @@ func chk(manPath string, config medhash.Config, files []string) error {
 	manifest.Config = config
 
 	var errs error
+
+	if config.Ed25519.Enabled {
+		color.Printf("Verifying manifest signature ")
+		err = manifest.Verify()
+		if err != nil {
+			color.Println(cmd.MsgStatusError)
+			return err
+		} else {
+			color.Println(cmd.MsgStatusOK)
+		}
+		color.Println("Checking files")
+	}
+
 	for _, med := range manifest.Media {
 		color.Printf("  %s: ", filepath.Join(config.Dir, med.Path))
 

@@ -1,5 +1,10 @@
 package medhash
 
+import (
+	"encoding/json"
+	"io"
+)
+
 const ManifestFormatVer = "0.6.0"
 const DefaultManifestName = "medhash.json"
 
@@ -25,11 +30,24 @@ var (
 
 // Manifest is a MedHash manifest.
 type Manifest struct {
-	Version   string  `json:"version"`
-	Generator string  `json:"generator,omitempty"`
-	Media     []Media `json:"media"`
+	Version   string    `json:"version"`
+	Generator string    `json:"generator,omitempty"`
+	Media     []Media   `json:"media"`
+	Signature Signature `json:"signature,omitzero"`
 
 	Config Config `json:"-"`
+}
+
+// JSON encodes manifest to JSON in-memory.
+func (manifest *Manifest) JSON() ([]byte, error) {
+	return json.MarshalIndent(manifest, "", "  ")
+}
+
+// JSONStream encodes manifest to JSON and writes it to writer.
+func (manifest *Manifest) JSONStream(writer io.Writer) error {
+	enc := json.NewEncoder(writer)
+	enc.SetIndent("", "  ")
+	return enc.Encode(manifest)
 }
 
 func New() (man *Manifest, err error) {
@@ -69,4 +87,7 @@ type Config struct {
 	SHA1 bool
 	// MD5 toggles the MD5 hash generation.
 	MD5 bool
+
+	// Ed25519 configures Ed25519 signature handling.
+	Ed25519 SigConf
 }

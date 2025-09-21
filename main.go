@@ -8,6 +8,7 @@ import (
 	"github.com/ghifari160/medhash-tools/cmd"
 	_ "github.com/ghifari160/medhash-tools/cmd/chk"
 	_ "github.com/ghifari160/medhash-tools/cmd/gen"
+	_ "github.com/ghifari160/medhash-tools/cmd/keygen"
 	_ "github.com/ghifari160/medhash-tools/cmd/upgrade"
 	"github.com/urfave/cli/v3"
 )

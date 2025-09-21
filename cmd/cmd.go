@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"strings"
 
 	"github.com/ghifari160/medhash-tools/color"
 	"github.com/ghifari160/medhash-tools/medhash"
@@ -100,3 +101,31 @@ const (
 	MsgFinalError    = color.Red + "Error!" + color.Reset
 	MsgFinalDone     = color.Green + "Done!" + color.Reset
 )
+
+// UpperCaseFirst transforms the first letter of str to uppercase.
+func UpperCaseFirst(str string) string {
+	return strings.ToUpper(str[0:1]) + str[1:]
+}
+
+// FinalizeAction finalizes a command action by printing the final status, and then any error.
+// If err is a set of joined errors (i.e. result of JoinErrors or errors.Join), the errors are
+// unwrapped and printed as a list.
+// Finalize action also sets the exit code through a call to cli.Exit.
+func FinalizeAction(err error) error {
+	if err == nil {
+		color.Println(MsgFinalDone)
+		return nil
+	}
+
+	errs := UnwrapJoinedErrors(err)
+
+	color.Println(MsgFinalError)
+	if len(errs) == 1 {
+		color.Println(UpperCaseFirst(errs[0].Error()))
+	} else {
+		for _, err := range errs {
+			color.Printf("- %s\n", UpperCaseFirst(err.Error()))
+		}
+	}
+	return cli.Exit("", 1)
+}

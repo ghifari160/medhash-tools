@@ -2,7 +2,6 @@ package gen
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/fs"
 	"os"
@@ -27,6 +26,10 @@ func CommandGen() *cli.Command {
 				Name:    "ignore",
 				Aliases: []string{"i"},
 				Usage:   "ignore patterns",
+			},
+			&cli.StringFlag{
+				Name:  "ed25519",
+				Usage: "sign the Manifest with this Ed25519 private key",
 			},
 		},
 		MutuallyExclusiveFlags: []cli.MutuallyExclusiveFlags{
@@ -54,6 +57,15 @@ func CommandGen() *cli.Command {
 
 func GenAction(ctx context.Context, command *cli.Command) error {
 	config := cmd.ConfigFromFlags(command)
+
+	if command.IsSet("ed25519") {
+		key, err := cmd.Loader(command.String("ed25519"), "ED25519 PRIVATE KEY")
+		if err != nil {
+			return cmd.FinalizeAction(err)
+		}
+		config.Ed25519.Enabled = true
+		config.Ed25519.PrivKey = key
+	}
 
 	dirs := command.Args().Slice()
 	if len(dirs) < 1 {
@@ -170,10 +182,13 @@ func GenFunc(config medhash.Config, ignores []string) error {
 		}
 	}
 
-	manFile, err := json.MarshalIndent(manifest, "", "  ")
-	if err != nil {
-		errs = cmd.JoinErrors(errs, err)
-		return errs
+	if config.Ed25519.Enabled {
+		color.Println("Signing manifest")
+
+		errs = cmd.JoinErrors(errs, manifest.Sign())
+		if errs != nil {
+			return errs
+		}
 	}
 
 	f, err := os.Create(filepath.Join(config.Dir, medhash.DefaultManifestName))
@@ -183,9 +198,6 @@ func GenFunc(config medhash.Config, ignores []string) error {
 	}
 	defer f.Close()
 
-	_, err = f.Write(manFile)
-	if err != nil {
-		errs = cmd.JoinErrors(errs, err)
-	}
+	errs = cmd.JoinErrors(errs, manifest.JSONStream(f))
 	return errs
 }
