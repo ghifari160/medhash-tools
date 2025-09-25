@@ -36,7 +36,6 @@ func CommandGen() *cli.Command {
 						&cli.BoolFlag{
 							Name:  "default",
 							Usage: "use default preset",
-							Value: true,
 						},
 					},
 					{
@@ -54,20 +53,7 @@ func CommandGen() *cli.Command {
 }
 
 func GenAction(ctx context.Context, command *cli.Command) error {
-	var config medhash.Config
-
-	if command.Bool("all") {
-		config = medhash.AllConfig
-	} else if command.IsSet("default") && command.Bool("default") {
-		config = medhash.DefaultConfig
-	} else {
-		config.XXH3 = command.Bool("xxh3")
-		config.SHA512 = command.Bool("sha512")
-		config.SHA3 = command.Bool("sha3")
-		config.SHA256 = command.Bool("sha256")
-		config.SHA1 = command.Bool("sha1")
-		config.MD5 = command.Bool("md5")
-	}
+	config := cmd.ConfigFromFlags(command)
 
 	dirs := command.Args().Slice()
 	if len(dirs) < 1 {
@@ -108,16 +94,7 @@ func GenAction(ctx context.Context, command *cli.Command) error {
 		}
 	}
 
-	if errs != nil {
-		color.Println(cmd.MsgFinalError)
-		for _, err := range cmd.UnwrapJoinedErrors(errs) {
-			color.Println(err)
-		}
-		return cli.Exit("", 1)
-	}
-
-	color.Println(cmd.MsgFinalDone)
-	return nil
+	return cmd.FinalizeAction(errs)
 }
 
 // GenFunc generates a Manifest using the provided config.

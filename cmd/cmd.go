@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ghifari160/medhash-tools/color"
+	"github.com/ghifari160/medhash-tools/medhash"
 	"github.com/urfave/cli/v3"
 )
 
@@ -40,6 +41,48 @@ func HashAlgs() []cli.Flag {
 		simpleBoolFlag("sha1", "use SHA1"),
 		simpleBoolFlag("md5", "use MD5"),
 	}
+}
+
+// ConfigFromFlags returns config based on the flags of command.
+// The flags checked are the ones HashAlgs returns.
+func ConfigFromFlags(command *cli.Command) medhash.Config {
+	var config medhash.Config
+
+	if command.Bool("all") {
+		return medhash.AllConfig
+	}
+
+	defaultConf := true
+	if command.Bool("xxh3") {
+		defaultConf = false
+		config.XXH3 = true
+	}
+	if command.Bool("sha512") {
+		defaultConf = false
+		config.SHA512 = true
+	}
+	if command.Bool("sha3") {
+		defaultConf = false
+		config.SHA3 = true
+	}
+	if command.Bool("sha256") {
+		defaultConf = false
+		config.SHA256 = true
+	}
+	if command.Bool("sha1") {
+		defaultConf = false
+		config.SHA1 = true
+	}
+	if command.Bool("md5") {
+		defaultConf = false
+		config.MD5 = true
+	}
+
+	if defaultConf {
+		config = medhash.DefaultConfig
+	}
+
+	return config
 }
 
 // simpleBoolFlag returns a new cli.BoolFlag with just the Name and Usage set.
