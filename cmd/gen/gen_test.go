@@ -1,10 +1,10 @@
-package cmd_test
+package gen_test
 
 import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ghifari160/medhash-tools/cmd"
+	"github.com/ghifari160/medhash-tools/cmd/gen"
 	"github.com/ghifari160/medhash-tools/medhash"
 	"github.com/ghifari160/medhash-tools/testcommon"
 	"github.com/stretchr/testify/require"
@@ -35,40 +35,44 @@ func testGen(t *testing.T, alg string, opts ...testcommon.Options) {
 	dir := t.TempDir()
 	payload := testcommon.GenPayload(t, dir, testcommon.PayloadSize())
 
-	c := new(cmd.Gen)
-	c.Dirs = []string{dir}
+	command := gen.CommandGen()
 	var conf medhash.Config
+
+	arguments := make([]string, 3)
+	arguments[0] = "gen"
+	arguments[2] = dir
 
 	switch alg {
 	case "xxh3":
-		c.XXH3 = true
 		conf.XXH3 = true
+		arguments[1] = "--xxh3"
 	case "sha512":
-		c.SHA512 = true
 		conf.SHA512 = true
+		arguments[1] = "--sha512"
 	case "sha3":
-		c.SHA3 = true
 		conf.SHA3 = true
+		arguments[1] = "--sha3"
 	case "sha256":
-		c.SHA256 = true
 		conf.SHA256 = true
+		arguments[1] = "--sha256"
 	case "sha1":
-		c.SHA1 = true
 		conf.SHA1 = true
+		arguments[1] = "--sha1"
 	case "md5":
-		c.MD5 = true
 		conf.MD5 = true
+		arguments[1] = "--md5"
 	case "all":
-		c.All = true
 		conf = medhash.AllConfig
+		arguments[1] = "--all"
 	default:
-		c.Default = true
 		conf = medhash.DefaultConfig
+		arguments[1] = "--default"
 	}
 	conf.Dir = dir
 	conf.Manifest = medhash.DefaultManifestName
 
-	require.Zero(c.Execute())
+	err := command.Run(t.Context(), arguments)
+	require.NoError(err)
 	require.FileExists(filepath.Join(dir, conf.Manifest))
 	testcommon.VerifyManifest(t, conf, payload.Hash)
 }

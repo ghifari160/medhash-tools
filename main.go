@@ -1,50 +1,32 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
-	"github.com/alexflint/go-arg"
 	"github.com/ghifari160/medhash-tools/cmd"
+	_ "github.com/ghifari160/medhash-tools/cmd/chk"
+	_ "github.com/ghifari160/medhash-tools/cmd/gen"
+	_ "github.com/ghifari160/medhash-tools/cmd/upgrade"
+	"github.com/urfave/cli/v3"
 )
 
 const Name = "MedHash Tools"
 const Version = "0.7.0"
 
 func main() {
-	var args struct {
-		Gen     *cmd.Gen        `arg:"subcommand:gen" help:"generate MedHash Manifest"`
-		Chk     *cmd.Chk        `arg:"subcommand:chk" help:"verify directories or files"`
-		Upgrade *cmd.Upgrade    `arg:"subcommand:upgrade" help:"upgrade MedHash Manifest"`
-		Ver     *cmd.GenericCmd `arg:"subcommand:version" help:"print tool version"`
-	}
-
-	p := arg.MustParse(&args)
-
-	if p.Subcommand() == nil {
-		p.WriteUsage(os.Stdout)
-		os.Exit(1)
+	root := &cli.Command{
+		Name:     "medhash",
+		Usage:    "Simple tool for verifying media file integrity",
+		Commands: cmd.Commands(),
 	}
 
 	printHeader()
-
-	var c cmd.Command
-
-	switch {
-	case args.Gen != nil:
-		c = args.Gen
-
-	case args.Chk != nil:
-		c = args.Chk
-
-	case args.Upgrade != nil:
-		c = args.Upgrade
-
-	case args.Ver != nil:
-		c = new(cmd.GenericCmd)
+	err := root.Run(context.Background(), os.Args)
+	if err != nil {
+		fmt.Printf("main: %v\n", err)
 	}
-
-	os.Exit(c.Execute())
 }
 
 func printHeader() {

@@ -1,6 +1,54 @@
 package cmd
 
-import "github.com/ghifari160/medhash-tools/color"
+import (
+	"context"
+
+	"github.com/ghifari160/medhash-tools/color"
+	"github.com/urfave/cli/v3"
+)
+
+func init() {
+	RegisterCmd(&cli.Command{
+		Name:  "version",
+		Usage: "print tool version",
+		Action: func(ctx context.Context, c *cli.Command) error {
+			return nil
+		},
+	})
+}
+
+var commands []*cli.Command
+
+// RegisterCmd registers a command.
+func RegisterCmd(cmd *cli.Command) {
+	commands = append(commands, cmd)
+}
+
+// Commands returns all registered commands.
+// Note that each command package may need to be anonymously imported.
+func Commands() []*cli.Command {
+	return commands
+}
+
+// HashAlgs returns the appropriate flags for all supported hashing algorithms.
+func HashAlgs() []cli.Flag {
+	return []cli.Flag{
+		simpleBoolFlag("xxh3", "use XXH3"),
+		simpleBoolFlag("sha512", "use SHA512"),
+		simpleBoolFlag("sha3", "use SHA3"),
+		simpleBoolFlag("sha256", "use SHA256"),
+		simpleBoolFlag("sha1", "use SHA1"),
+		simpleBoolFlag("md5", "use MD5"),
+	}
+}
+
+// simpleBoolFlag returns a new cli.BoolFlag with just the Name and Usage set.
+func simpleBoolFlag(name, usage string) *cli.BoolFlag {
+	return &cli.BoolFlag{
+		Name:  name,
+		Usage: usage,
+	}
+}
 
 const (
 	MsgStatusError   = color.Red + "ERROR" + color.Reset
@@ -9,26 +57,3 @@ const (
 	MsgFinalError    = color.Red + "Error!" + color.Reset
 	MsgFinalDone     = color.Green + "Done!" + color.Reset
 )
-
-// Command is a generic wrapper for all subcommands.
-type Command interface {
-	Execute() (status int)
-}
-
-// GenericCmd is a generic subcommand.
-type GenericCmd struct{}
-
-func (c GenericCmd) Execute() (status int) { return }
-
-// CmdConfig is a common set of parameters for the commands.
-type CmdConfig struct {
-	Default bool `arg:"--default,-d" default:"true" help:"use default preset"`
-	All     bool `arg:"--all,-a" help:"use all algorithms"`
-
-	XXH3   bool `arg:"--xxh3" help:"use XXH3"`
-	SHA512 bool `arg:"--sha512" help:"use SHA512"`
-	SHA3   bool `arg:"--sha3" help:"use SHA3-256"`
-	SHA256 bool `arg:"--sha256" help:"use SHA256"`
-	SHA1   bool `arg:"--sha1" help:"use SHA1"`
-	MD5    bool `arg:"--md5" help:"use MD5"`
-}

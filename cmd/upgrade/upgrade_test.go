@@ -1,13 +1,15 @@
-package cmd_test
+package upgrade_test
 
 import (
+	"context"
 	"path/filepath"
 	"testing"
 
-	"github.com/ghifari160/medhash-tools/cmd"
+	"github.com/ghifari160/medhash-tools/cmd/upgrade"
 	"github.com/ghifari160/medhash-tools/medhash"
 	"github.com/ghifari160/medhash-tools/testcommon"
 	"github.com/stretchr/testify/require"
+	"github.com/urfave/cli/v3"
 )
 
 func TestUpgrade(t *testing.T) {
@@ -48,13 +50,26 @@ func testUpgrade(t *testing.T, version string, opts ...testcommon.Options) {
 	if genConf.Manifest == "" {
 		genConf.Manifest = medhash.DefaultManifestName
 	}
-	checkConf := medhash.DefaultConfig
-	checkConf.Dir = dir
-	checkConf.Manifest = filepath.Base(manifestPath)
+	chkConf := medhash.DefaultConfig
+	chkConf.Dir = dir
+	chkConf.Manifest = filepath.Base(manifestPath)
 
-	c := new(cmd.Upgrade)
-	c.Default = true
-	c.Dirs = []string{dir}
+	var shouldError bool
+
+	command := upgrade.CommandUpgrade()
+	command.ExitErrHandler = func(ctx context.Context, c *cli.Command, err error) {
+		if shouldError {
+			require.Error(err)
+		} else {
+			require.NoError(err)
+		}
+	}
+	arguments := make([]string, 1)
+	arguments[0] = "upgrade"
+
+	if force {
+		arguments = append(arguments, "--force")
+	}
 
 	if version == "0.1.0" {
 		testcommon.CreateLegacyManifest(t, dir, payload)
@@ -62,16 +77,37 @@ func testUpgrade(t *testing.T, version string, opts ...testcommon.Options) {
 		testcommon.CreateManifest(t, genConf, payload, version)
 	}
 
-	if version == cmd.CurrentSpec {
+	if version == upgrade.CurrentSpec && !force {
 		if !force {
-			require.NotZero(c.Execute())
-			return
-		} else {
-			c.Force = true
+			shouldError = true
 		}
 	}
 
-	require.Zero(c.Execute())
+	arguments = append(arguments, dir)
+
+	err := command.Run(t.Context(), arguments)
+
+	if shouldError {
+		require.Error(err)
+	} else {
+		require.NoError(err)
+	}
 	require.FileExists(manifestPath)
-	testcommon.VerifyManifest(t, checkConf, payload.Hash)
+	testcommon.VerifyManifest(t, chkConf, payload.Hash)
+}
+
+func withForce(force bool) testcommon.Options {
+	return testcommon.NewOptions("force", force)
+}
+
+func withGenConfig(config medhash.Config) testcommon.Options {
+	return testcommon.NewOptions("config_gen", config)
+}
+
+func genConfig(options testcommon.Options) medhash.Config {
+	if v, ok := options.Raw("config_gen").(medhash.Config); ok {
+		return v
+	} else {
+		return medhash.Config{}
+	}
 }
