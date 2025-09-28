@@ -7,11 +7,12 @@ import (
 	"path/filepath"
 	"testing"
 
+	"aead.dev/minisign"
 	"github.com/stretchr/testify/require"
 )
 
-// LoadKey loads a PEM encoded key from path.
-func LoadKey(t testing.TB, path string) (key []byte) {
+// LoadPEMKey loads a PEM encoded key from path.
+func LoadPEMKey(t testing.TB, path string) (key []byte) {
 	t.Helper()
 
 	require := require.New(t)
@@ -40,14 +41,76 @@ func GenEd25519Keypair(t testing.TB) (pubPath, privPath string) {
 	privPath = filepath.Join(dir, "ed25519.key")
 	pubPath = filepath.Join(dir, "ed25519.pub")
 
-	require.NoError(storeKey(privPath, "ED25519 PRIVATE KEY", privKey))
-	require.NoError(storeKey(pubPath, "ED25519 PUBLIC KEY", pubKey))
+	require.NoError(storePEMKey(privPath, "ED25519 PRIVATE KEY", privKey))
+	require.NoError(storePEMKey(pubPath, "ED25519 PUBLIC KEY", pubKey))
 
 	return
 }
 
-// storeKey PEM encodes key in path.
-func storeKey(path, keyType string, key []byte) error {
+func LoadMinisignPrivKey(t testing.TB, path, password string) (key minisign.PrivateKey) {
+	t.Helper()
+
+	require := require.New(t)
+
+	f, err := os.ReadFile(path)
+	require.NoError(err)
+
+	err = key.UnmarshalText(f)
+	if err != nil {
+		key, err = minisign.DecryptKey(password, f)
+		require.NoError(err)
+	}
+	return
+}
+
+func LoadMinisignPubKey(t testing.TB, path string) (key minisign.PublicKey) {
+	t.Helper()
+
+	require := require.New(t)
+
+	f, err := os.ReadFile(path)
+	require.NoError(err)
+
+	require.NoError(key.UnmarshalText(f))
+
+	return
+}
+
+// GenMinisignKeypair generates a new Minisign keypair and returns the paths.
+// The generated keypair are stored in a temporary directory associated with t.
+// If password is an empty string, the key will be stored unencrypted.
+// Otherwise, GenMinisignKeypair encrypts the private key with a key derived from password.
+func GenMinisignKeypair(t testing.TB, password string) (pubPath, privPath string) {
+	t.Helper()
+
+	require := require.New(t)
+
+	t.Log("Generating Minisign keypair")
+	dir := t.TempDir()
+
+	pubKey, privKey, err := minisign.GenerateKey(nil)
+	require.NoError(err)
+
+	privPath = filepath.Join(dir, "minisign.key")
+	var privKeyText []byte
+	if password != "" {
+		privKeyText, err = minisign.EncryptKey(password, privKey)
+	} else {
+		privKeyText, err = privKey.MarshalText()
+	}
+	require.NoError(err)
+	require.NoError(os.WriteFile(privPath, privKeyText, 0600))
+
+	pubPath = filepath.Join(dir, "minisign.pub")
+	pubKeyText, err := pubKey.MarshalText()
+	require.NoError(err)
+	require.NoError(os.WriteFile(pubPath, pubKeyText, 0600))
+
+	return
+}
+
+// storePEMKey PEM encodes key in path.
+func storePEMKey(path, keyType string, key []byte) error {
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
 	if err != nil {
 		return err

@@ -33,6 +33,8 @@ func (opt Options) Bool(key string) bool {
 func (opt Options) Str(key string) string {
 	if v, ok := opt.config[key].(string); ok {
 		return v
+	} else if opt.config[key] == nil {
+		return ""
 	} else {
 		return fmt.Sprintf("%v", opt.config[key])
 	}

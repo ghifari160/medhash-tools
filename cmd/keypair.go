@@ -7,7 +7,7 @@ import (
 )
 
 // Generator generates a new keypair for a given algorithm.
-type Generator func() (pubKey, privKey []byte, err error)
+type Generator func(password string) (pubKey, privKey []byte, err error)
 
 // Storer stores key for a given algorithm.
 type Storer func(private bool, path string, data []byte) error

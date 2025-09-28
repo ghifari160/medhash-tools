@@ -3,6 +3,8 @@ package medhash
 import (
 	"encoding/json"
 	"io"
+
+	"aead.dev/minisign"
 )
 
 const ManifestFormatVer = "0.6.0"
@@ -90,4 +92,6 @@ type Config struct {
 
 	// Ed25519 configures Ed25519 signature handling.
 	Ed25519 SigConf
+	// Minisign configures Minisign signature handling.
+	Minisign GenericSigConf[minisign.PrivateKey, minisign.PublicKey]
 }

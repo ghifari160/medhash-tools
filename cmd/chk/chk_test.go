@@ -24,7 +24,9 @@ func TestChk(t *testing.T) {
 
 		testcommon.Case("all", "all"),
 		testcommon.Case("default/default", "default"),
-		testcommon.Case("default/signed", "default", withEd25519()),
+		testcommon.Case("default/signed/ed25519", "default", withEd25519()),
+		testcommon.Case("default/signed/minisign/keyfile", "default", withMinisignFile()),
+		testcommon.Case("default/signed/minisign/keystr", "default", withMinisignKey()),
 		testcommon.Case("default/invalid", "default", withInvalidate(true)),
 		testcommon.Case("default/file_list/skip", "default", withFiles([]string{"payload2"})),
 		testcommon.Case("default/file_list/include", "default", withFiles([]string{"payload"})),
@@ -95,9 +97,22 @@ func testChk(t *testing.T, alg string, opts ...testcommon.Options) {
 	if options.Bool("ed25519") {
 		pubPath, privPath := testcommon.GenEd25519Keypair(t)
 		conf.Ed25519.Enabled = true
-		conf.Ed25519.PrivKey = testcommon.LoadKey(t, privPath)
-		conf.Ed25519.PubKey = testcommon.LoadKey(t, pubPath)
+		conf.Ed25519.PrivKey = testcommon.LoadPEMKey(t, privPath)
+		conf.Ed25519.PubKey = testcommon.LoadPEMKey(t, pubPath)
 		arguments = append(arguments, "--ed25519", pubPath)
+	}
+
+	if options.Bool("minisign_verify") {
+		pubPath, privPath := testcommon.GenMinisignKeypair(t, "")
+		conf.Minisign.Enabled = true
+		conf.Minisign.PrivKey = testcommon.LoadMinisignPrivKey(t, privPath, "")
+
+		if options.Bool("minisign_keyfile") {
+			arguments = append(arguments, "--minisign-keyfile", pubPath)
+		} else if options.Bool("minisign_key") {
+			key := testcommon.LoadMinisignPubKey(t, pubPath)
+			arguments = append(arguments, "--minisign-key", key.String())
+		}
 	}
 
 	conf.Dir = dir
@@ -138,4 +153,18 @@ func withFiles(files []string) testcommon.Options {
 // withEd25519 flags the test to generate and verify a signed Manifest.
 func withEd25519() testcommon.Options {
 	return testcommon.NewOptions("ed25519", true)
+}
+
+func withMinisignFile() testcommon.Options {
+	return testcommon.MergeOptions(
+		testcommon.NewOptions("minisign_verify", true),
+		testcommon.NewOptions("minisign_keyfile", true),
+	)
+}
+
+func withMinisignKey() testcommon.Options {
+	return testcommon.MergeOptions(
+		testcommon.NewOptions("minisign_verify", true),
+		testcommon.NewOptions("minisign_key", true),
+	)
 }

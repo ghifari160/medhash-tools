@@ -6,7 +6,9 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"aead.dev/minisign"
 	"github.com/ghifari160/medhash-tools/cmd"
 	"github.com/ghifari160/medhash-tools/color"
 	"github.com/ghifari160/medhash-tools/medhash"
@@ -30,6 +32,14 @@ func CommandGen() *cli.Command {
 			&cli.StringFlag{
 				Name:  "ed25519",
 				Usage: "sign the Manifest with this Ed25519 private key",
+			},
+			&cli.StringFlag{
+				Name:  "minisign-key",
+				Usage: "sign the Manifest with this Minisign private key",
+			},
+			&cli.StringFlag{
+				Name:  "minisign-pass",
+				Usage: "path to file containing the decryption password to the Minisign private key",
 			},
 		},
 		MutuallyExclusiveFlags: []cli.MutuallyExclusiveFlags{
@@ -65,6 +75,48 @@ func GenAction(ctx context.Context, command *cli.Command) error {
 		}
 		config.Ed25519.Enabled = true
 		config.Ed25519.PrivKey = key
+	}
+
+	if command.IsSet("minisign-key") {
+		data, err := os.ReadFile(command.String("minisign-key"))
+		if err != nil {
+			return cmd.FinalizeAction(err)
+		}
+
+		var key minisign.PrivateKey
+		err = key.UnmarshalText(data)
+		if err != nil {
+			var password string
+			if command.IsSet("minisign-pass") {
+				f, err := os.ReadFile(command.String("minisign-pass"))
+				if err != nil {
+					return cmd.FinalizeAction(err)
+				}
+				password = string(f)
+			} else if p, set := os.LookupEnv("MINISIGN_PASS"); set && p != "" {
+				password = p
+			} else {
+				prompt := cmd.Prompt[string]{
+					Prompt:   "Minisign private key password: ",
+					Password: true,
+					Validate: func(input string) (string, error) {
+						return strings.TrimRight(input, "\r\n"), nil
+					},
+				}
+				p, err := prompt.Run()
+				if err != nil {
+					return cmd.FinalizeAction(err)
+				}
+				password = p
+			}
+
+			key, err = minisign.DecryptKey(password, data)
+			if err != nil {
+				return cmd.FinalizeAction(err)
+			}
+		}
+		config.Minisign.Enabled = true
+		config.Minisign.PrivKey = key
 	}
 
 	dirs := command.Args().Slice()
@@ -182,13 +234,32 @@ func GenFunc(config medhash.Config, ignores []string) error {
 		}
 	}
 
+	var shouldSign bool
 	if config.Ed25519.Enabled {
-		color.Println("Signing manifest")
+		shouldSign = true
+	}
+	if config.Minisign.Enabled {
+		shouldSign = true
+	}
+
+	if shouldSign {
+		color.Printf("Signing manifest ")
 
 		errs = cmd.JoinErrors(errs, manifest.Sign())
 		if errs != nil {
+			color.Println(cmd.MsgStatusError)
 			return errs
 		}
+
+		if config.Minisign.Enabled {
+			errs = cmd.JoinErrors(errs, minisignStoreSidecarSig(manifest))
+			if errs != nil {
+				color.Println(cmd.MsgStatusError)
+				return errs
+			}
+		}
+
+		color.Println(cmd.MsgStatusOK)
 	}
 
 	f, err := os.Create(filepath.Join(config.Dir, medhash.DefaultManifestName))
@@ -200,4 +271,16 @@ func GenFunc(config medhash.Config, ignores []string) error {
 
 	errs = cmd.JoinErrors(errs, manifest.JSONStream(f))
 	return errs
+}
+
+// minisignStoreSidecarSig stores man.Signature.Minisign into a sidecar file for compatibility
+// with other Minisign tools.
+func minisignStoreSidecarSig(man *medhash.Manifest) error {
+	sigFile := man.Config.Manifest
+	if sigFile == "" {
+		sigFile = medhash.DefaultManifestName
+	}
+	sigFile = filepath.Join(man.Config.Dir, sigFile) + ".minisig"
+
+	return os.WriteFile(sigFile, []byte(man.Signature.Minisign), 0644)
 }

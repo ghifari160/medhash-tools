@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 
+	"aead.dev/minisign"
 	"github.com/ghifari160/medhash-tools/cmd"
 	"github.com/ghifari160/medhash-tools/color"
 	"github.com/urfave/cli/v3"
@@ -17,7 +18,7 @@ import (
 func init() {
 	RegisterSubcommand(
 		Subcommand("ed25519", "generate Ed25519 keypair for signing MedHash Manifest",
-			func() (pubKey, privKey []byte, err error) {
+			func(_ string) (pubKey, privKey []byte, err error) {
 				return ed25519.GenerateKey(nil)
 			},
 			func(private bool, path string, data []byte) error {
@@ -38,6 +39,34 @@ func init() {
 
 				return pem.Encode(f, &block)
 			}))
+	RegisterSubcommand(
+		Subcommand("minisign", "generate Minisign keypair for signing MedHash Manifest",
+			func(password string) (pubKeyData, privKeyData []byte, err error) {
+				pubKey, privKey, err := minisign.GenerateKey(nil)
+				if err != nil {
+					return
+				}
+
+				if password != "" {
+					privKeyData, err = minisign.EncryptKey(password, privKey)
+				} else {
+					privKeyData, err = privKey.MarshalText()
+				}
+				if err != nil {
+					return
+				}
+
+				pubKeyData, err = pubKey.MarshalText()
+				if err != nil {
+					return
+				}
+
+				return
+			},
+			func(private bool, path string, data []byte) error {
+				return os.WriteFile(path, data, 0600)
+			}),
+	)
 	cmd.RegisterCmd(Command())
 }
 
@@ -159,8 +188,31 @@ func subcommandAction(_ context.Context, command *cli.Command,
 		}
 	}
 
+	var password string
+	if p, set := os.LookupEnv("PASS"); set {
+		password = p
+	} else {
+		prompt := cmd.Prompt[string]{
+			Prompt:   "Password: ",
+			Password: true,
+			Validate: func(input string) (res string, err error) {
+				if strings.HasSuffix(input, "\r\n") {
+					res = strings.TrimSuffix(input, "\r\n")
+				} else {
+					res = strings.TrimSuffix(input, "\n")
+				}
+				return
+			},
+		}
+		p, err := prompt.Run()
+		if err != nil {
+			return cmd.FinalizeAction(err)
+		}
+		password = p
+	}
+
 	color.Print("Generating keypair ")
-	pubKey, privKey, err := generator()
+	pubKey, privKey, err := generator(password)
 	if err != nil {
 		errs = cmd.JoinErrors(errs, err)
 		color.Println(cmd.MsgStatusError)

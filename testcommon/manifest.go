@@ -1,14 +1,17 @@
 package testcommon
 
 import (
+	"bytes"
 	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"aead.dev/minisign"
 	"github.com/ghifari160/medhash-tools/medhash"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -68,13 +71,31 @@ func CreateManifest(t testing.TB, config medhash.Config, payload medhash.Media, 
 			t.Fatalf("Ed25519.Enabled is true but no valid PrivKey found")
 		}
 
-		payload, err := manifest.JSON()
+		payload, err := manifest.StripSignature().JSON()
 		require.NoError(err)
 
 		require.NotPanics(func() {
 			signature := ed25519.Sign(config.Ed25519.PrivKey, payload)
 			manifest.Signature.Ed25519 = hex.EncodeToString(signature)
 		})
+	}
+
+	if config.Minisign.Enabled {
+		if config.Minisign.PrivKey.Equal(minisign.PrivateKey{}) {
+			t.Fatal("Minisign.Enabled is true but no valid PrivKey found")
+		}
+
+		var buf bytes.Buffer
+		require.NoError(manifest.JSONStream(&buf))
+		reader := minisign.NewReader(&buf)
+		_, err := io.Copy(io.Discard, reader)
+		require.NoError(err)
+
+		var signature []byte
+		require.NotPanics(func() {
+			signature = reader.Sign(config.Minisign.PrivKey)
+		})
+		manifest.Signature.Minisign = string(signature)
 	}
 
 	require.NoError(storeManifest(manifest, manifestPath))

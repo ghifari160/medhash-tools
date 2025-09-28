@@ -1,10 +1,15 @@
 package medhash
 
 import (
+	"bytes"
 	"crypto/ed25519"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
+	"time"
+
+	"aead.dev/minisign"
 )
 
 // StripSignature returns a copy of man with the Signature field set to the zero value.
@@ -21,6 +26,9 @@ func (man *Manifest) Sign() error {
 	if man.Config.Ed25519.Enabled {
 		errs = append(errs, ed25519_sign(man))
 	}
+	if man.Config.Minisign.Enabled {
+		errs = append(errs, minisign_sign(man))
+	}
 	return errors.Join(errs...)
 }
 
@@ -29,6 +37,9 @@ func (man *Manifest) Verify() error {
 	errs := make([]error, 0)
 	if man.Config.Ed25519.Enabled {
 		errs = append(errs, ed25519_verify(man))
+	}
+	if man.Config.Minisign.Enabled {
+		errs = append(errs, minisign_verify(man))
 	}
 	return errors.Join(errs...)
 }
@@ -77,6 +88,68 @@ func ed25519_verify(man *Manifest) (err error) {
 	return
 }
 
+// minisign_sign signs manifest with Minisign.
+func minisign_sign(manifest *Manifest) (err error) {
+	var buf bytes.Buffer
+
+	err = manifest.StripSignature().JSONStream(&buf)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			err = recoverErr(r)
+		}
+	}()
+
+	reader := minisign.NewReader(&buf)
+	_, err = io.Copy(io.Discard, reader)
+
+	manifestName := manifest.Config.Manifest
+	if manifestName == "" {
+		manifestName = DefaultManifestName
+	}
+	trusted := fmt.Sprintf("timestamp:%d\tfile:%s", time.Now().Unix(), manifestName)
+	untrusted := fmt.Sprintf("signature of stripped %s (key id: %d)",
+		manifestName, manifest.Config.Minisign.PrivKey.ID())
+
+	sig := reader.SignWithComments(manifest.Config.Minisign.PrivKey, trusted, untrusted)
+	manifest.Signature.Minisign = string(sig)
+
+	return
+}
+
+// minisign_verify verifies manifest with Minisign.
+func minisign_verify(manifest *Manifest) (err error) {
+	var buf bytes.Buffer
+
+	err = manifest.StripSignature().JSONStream(&buf)
+	if err != nil {
+		return
+	}
+
+	rawSig := []byte(manifest.Signature.Minisign)
+
+	reader := minisign.NewReader(&buf)
+	_, err = io.Copy(io.Discard, reader)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			err = recoverErr(r)
+		}
+	}()
+
+	if !reader.Verify(manifest.Config.Minisign.PubKey, rawSig) {
+		err = fmt.Errorf("minisign: bad signature")
+	}
+
+	return
+}
+
 // recoverErr recovers error from r.
 // If r is an error or can be casted into the error interface, it is casted and returned.
 // Otherwise, recoverErr returns fmt.Errorf("%v", r).
@@ -107,7 +180,8 @@ func recoverErr(r any) error {
 
 // Signature stores signatures for the Manifest.
 type Signature struct {
-	Ed25519 string `json:"ed25519,omitempty"`
+	Ed25519  string `json:"ed25519,omitempty"`
+	Minisign string `json:"minisign,omitempty"`
 }
 
 // SigConf configures a given signature algorithm.
@@ -120,4 +194,15 @@ type SigConf struct {
 	// PrivKey stores the unencoded private key.
 	// PrivKey affects only signing.
 	PrivKey []byte
+}
+
+type GenericSigConf[S any, P any] struct {
+	// Enable signing or verification.
+	Enabled bool
+	// PubKey stores the unencoded public key.
+	// PubKey affects only verification.
+	PubKey P
+	// PrivKey stores the unencoded private key.
+	// PrivKey affects only signing.
+	PrivKey S
 }

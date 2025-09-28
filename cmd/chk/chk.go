@@ -3,10 +3,13 @@ package chk
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"aead.dev/minisign"
 	"github.com/ghifari160/medhash-tools/cmd"
 	"github.com/ghifari160/medhash-tools/color"
 	"github.com/ghifari160/medhash-tools/medhash"
@@ -35,6 +38,14 @@ func CommandChk() *cli.Command {
 			&cli.StringFlag{
 				Name:  "ed25519",
 				Usage: "verify the Manifest Ed25519 signature with this public key",
+			},
+			&cli.StringFlag{
+				Name:  "minisign-keyfile",
+				Usage: "verify the Manifest Minisign signature with this public key file",
+			},
+			&cli.StringFlag{
+				Name:  "minisign-key",
+				Usage: "verify the Manifest Minisign signature with this public key as Base64 string",
 			},
 		},
 		MutuallyExclusiveFlags: []cli.MutuallyExclusiveFlags{
@@ -71,6 +82,21 @@ func ChkAction(ctx context.Context, command *cli.Command) error {
 		}
 		config.Ed25519.Enabled = true
 		config.Ed25519.PubKey = key
+	}
+
+	if command.IsSet("minisign-keyfile") || command.IsSet("minisign-key") {
+		var key minisign.PublicKey
+		var err error
+		if command.IsSet("minisign-keyfile") {
+			key, err = minisign.PublicKeyFromFile(command.String("minisign-keyfile"))
+		} else {
+			err = key.UnmarshalText([]byte(command.String("minisign-key")))
+		}
+		if err != nil {
+			return cmd.FinalizeAction(err)
+		}
+		config.Minisign.Enabled = true
+		config.Minisign.PubKey = key
 	}
 
 	dirs := command.Args().Slice()
@@ -118,19 +144,52 @@ func chk(manPath string, config medhash.Config, files []string) error {
 	}
 	manifest.Config = config
 
-	var errs error
-
+	var shouldVerifySig bool
 	if config.Ed25519.Enabled {
+		shouldVerifySig = true
+	}
+	if config.Minisign.Enabled {
+		shouldVerifySig = true
+	}
+
+	if shouldVerifySig {
 		color.Printf("Verifying manifest signature ")
+
+		if config.Minisign.Enabled {
+			sidecarFile := manPath + ".minisig"
+			sig, err := os.ReadFile(sidecarFile)
+			if err != nil {
+				if !errors.Is(err, os.ErrNotExist) {
+					err = fmt.Errorf("cannot check for minisign sidecar file at %s", sidecarFile)
+				} else {
+					err = nil
+				}
+			} else {
+				inManifest := strings.TrimSpace(manifest.Signature.Minisign)
+				sig := strings.TrimSpace(string(sig))
+				if inManifest == "" {
+					manifest.Signature.Minisign = sig
+				} else if inManifest != "" && inManifest != sig {
+					err = fmt.Errorf("signature in manifest differs from sidecar file %s", sidecarFile)
+				}
+			}
+			if err != nil {
+				color.Println(cmd.MsgStatusError)
+				return err
+			}
+		}
+
 		err = manifest.Verify()
 		if err != nil {
 			color.Println(cmd.MsgStatusError)
 			return err
-		} else {
-			color.Println(cmd.MsgStatusOK)
 		}
+
+		color.Println(cmd.MsgStatusOK)
 		color.Println("Checking files")
 	}
+
+	var errs error
 
 	for _, med := range manifest.Media {
 		color.Printf("  %s: ", filepath.Join(config.Dir, med.Path))

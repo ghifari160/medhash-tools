@@ -1,6 +1,7 @@
 package gen_test
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -22,7 +23,9 @@ func TestGen(t *testing.T) {
 		testcommon.Case("md5", "md5"),
 
 		testcommon.Case("default/default", "default"),
-		testcommon.Case("default/signed", "default", withEd25519()),
+		testcommon.Case("default/signed/ed25519", "default", withEd25519()),
+		testcommon.Case("default/signed/minisign/unencrypted", "default", withMinisign("")),
+		testcommon.Case("default/signed/minisign/encrypted", "default", withMinisign("correct-battery-horse-staple")),
 		testcommon.Case("all", "all"),
 	}
 
@@ -74,8 +77,22 @@ func testGen(t *testing.T, alg string, opts ...testcommon.Options) {
 	if options.Bool("ed25519") {
 		pubPath, privPath := testcommon.GenEd25519Keypair(t)
 		conf.Ed25519.Enabled = true
-		conf.Ed25519.PubKey = testcommon.LoadKey(t, pubPath)
+		conf.Ed25519.PubKey = testcommon.LoadPEMKey(t, pubPath)
 		arguments = append(arguments, "--ed25519", privPath)
+	}
+
+	if options.Bool("minisign_sign") {
+		password := options.Str("minisign_pass")
+		pubPath, privPath := testcommon.GenMinisignKeypair(t, password)
+		conf.Minisign.Enabled = true
+		conf.Minisign.PubKey = testcommon.LoadMinisignPubKey(t, pubPath)
+		arguments = append(arguments, "--minisign-key", privPath)
+		if oldPass, set := os.LookupEnv("MINISIGN_PASS"); set {
+			t.Cleanup(func() {
+				os.Setenv("MINISIGN_PASS", oldPass)
+			})
+		}
+		require.NoError(os.Setenv("MINISIGN_PASS", password))
 	}
 
 	conf.Dir = dir
@@ -90,4 +107,11 @@ func testGen(t *testing.T, alg string, opts ...testcommon.Options) {
 
 func withEd25519() testcommon.Options {
 	return testcommon.NewOptions("ed25519", true)
+}
+
+func withMinisign(password string) testcommon.Options {
+	return testcommon.MergeOptions(
+		testcommon.NewOptions("minisign_sign", true),
+		testcommon.NewOptions("minisign_pass", password),
+	)
 }
